@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import {
   MoreVertical,
   Play,
@@ -22,7 +22,8 @@ import { useSession } from "@/lib/auth";
 import { UploadVideoDialog } from "@/components/baila/UploadVideoDialog";
 import { EditProfileDialog } from "@/components/baila/EditProfileDialog";
 import { SignedImage } from "@/components/baila/SignedMedia";
-import type { DanceVideo, Profile } from "@/lib/baila-types";
+import { ManageContent } from "@/components/baila/ManageContent";
+import { ROLE_LABEL, type DanceVideo, type Profile } from "@/lib/baila-types";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -79,9 +80,8 @@ function ProfilePage() {
     },
   });
 
-  useEffect(() => {
-    if (profile && !profile.onboarded) setEditOpen(true);
-  }, [profile?.onboarded]);
+  // Onboarding flow handles initial profile setup at /app/onboarding.
+
 
   const removeVideo = async (v: DanceVideo) => {
     await supabase.storage.from("dance-videos").remove([v.storage_path]);
@@ -234,11 +234,15 @@ function ProfilePage() {
           </button>
         </div>
 
-        <h1 className="mt-3 font-display text-2xl font-semibold leading-tight text-baila-ink">
-          {name}
-        </h1>
-        {profile.username && (
-          <p className="text-sm text-baila-ink/60">@{profile.username}</p>
+        <div className="mt-3 flex items-center gap-2">
+          <h1 className="font-display text-2xl font-semibold leading-tight text-baila-ink">{name}</h1>
+          <span className="rounded-full bg-baila-ink/5 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-baila-ink/70">
+            {ROLE_LABEL[profile.role]}
+          </span>
+        </div>
+        {profile.username && <p className="text-sm text-baila-ink/60">@{profile.username}</p>}
+        {profile.headline && (
+          <p className="mt-1 text-[15px] font-medium text-baila-ink/85">{profile.headline}</p>
         )}
 
         {profile.bio ? (
@@ -385,6 +389,10 @@ function ProfilePage() {
           </ul>
         )}
       </section>
+
+      {(profile.role === "instructor" || profile.role === "organizer") && user && (
+        <ManageContent userId={user.id} role={profile.role} />
+      )}
 
       {user && (
         <UploadVideoDialog userId={user.id} open={uploadOpen} onOpenChange={setUploadOpen} />
