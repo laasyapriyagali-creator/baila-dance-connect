@@ -8,6 +8,7 @@ export function SignedImage({
   className,
   fallback,
   loading = "lazy",
+  fetchPriority,
 }: {
   bucket: string;
   path: string | null | undefined;
@@ -15,6 +16,7 @@ export function SignedImage({
   className?: string;
   fallback?: React.ReactNode;
   loading?: "eager" | "lazy";
+  fetchPriority?: "high" | "low" | "auto";
 }) {
   const [url, setUrl] = useState<string | null>(null);
   useEffect(() => {
@@ -32,7 +34,18 @@ export function SignedImage({
   }, [bucket, path]);
   if (!path) return <>{fallback ?? null}</>;
   if (!url) return <div className={`${className ?? ""} animate-pulse bg-baila-ink/10`} />;
-  return <img src={url} alt={alt} className={className} loading={loading} decoding="async" />;
+  return (
+    <img
+      src={url}
+      alt={alt}
+      className={className}
+      loading={loading}
+      decoding="async"
+      // @ts-expect-error fetchpriority is a valid HTML attribute, lower-cased in DOM
+      fetchpriority={fetchPriority}
+      onError={() => setUrl(null)}
+    />
+  );
 }
 
 type SignedVideoProps = {
@@ -69,17 +82,50 @@ export const SignedVideo = forwardRef<HTMLVideoElement, SignedVideoProps>(functi
 ) {
   const [url, setUrl] = useState<string | null>(null);
   const [poster, setPoster] = useState<string | null>(null);
+  const [errored, setErrored] = useState(false);
   const localRef = useRef<HTMLVideoElement>(null);
+  const retried = useRef(false);
+
   useEffect(() => {
     let alive = true;
+    setErrored(false);
+    retried.current = false;
     signedUrl(bucket, path).then((u) => alive && setUrl(u));
     if (posterPath && posterBucket) {
       signedUrl(posterBucket, posterPath).then((u) => alive && setPoster(u));
+    } else {
+      setPoster(null);
     }
     return () => {
       alive = false;
     };
   }, [bucket, path, posterBucket, posterPath]);
+
+  const handleError = () => {
+    if (retried.current) {
+      setErrored(true);
+      return;
+    }
+    retried.current = true;
+    // Force-refresh: signed URL may have expired or briefly failed.
+    signedUrl(bucket, path).then((u) => {
+      if (!u) {
+        setErrored(true);
+        return;
+      }
+      setUrl(`${u}${u.includes("?") ? "&" : "?"}r=${Date.now()}`);
+    });
+  };
+
+  if (errored) {
+    return (
+      <div
+        className={`${className ?? ""} flex items-center justify-center bg-baila-ink/80 text-xs text-white/70`}
+      >
+        Video unavailable
+      </div>
+    );
+  }
   if (!url) return <div className={`${className ?? ""} animate-pulse bg-baila-ink/10`} />;
   return (
     <video
@@ -98,6 +144,7 @@ export const SignedVideo = forwardRef<HTMLVideoElement, SignedVideoProps>(functi
       controls={controls}
       preload={preload}
       onClick={onClick}
+      onError={handleError}
     />
   );
 });

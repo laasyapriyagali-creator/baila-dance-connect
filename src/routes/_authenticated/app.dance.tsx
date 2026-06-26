@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/lib/auth";
 import { DanceCard, type FeedItem } from "@/components/baila/DanceCard";
 import { DANCE_STYLES, type Profile, type DanceVideo } from "@/lib/baila-types";
+import { prewarm } from "@/lib/storage";
 import {
   Sheet,
   SheetContent,
@@ -90,7 +91,12 @@ function DanceFeed() {
         if (cityOnly && me?.city && p.city !== me.city) continue;
         items.push({ profile: p, mainVideo: v });
       }
-      return items.sort((a, b) => score(b) - score(a));
+      const sorted = items.sort((a, b) => score(b) - score(a));
+      // Pre-warm first few signed URLs so the initial paint has video + poster ready.
+      const first = sorted.slice(0, 3);
+      prewarm("dance-videos", first.map((f) => f.mainVideo.storage_path));
+      prewarm("dance-videos", first.map((f) => f.mainVideo.poster_url));
+      return sorted;
     },
   });
 
@@ -113,17 +119,23 @@ function DanceFeed() {
     return () => io.disconnect();
   }, [feed?.length]);
 
-  // Pause non-active videos to save battery and bandwidth.
+  // Pause non-active videos; preload neighbors. Prewarm signed URLs for upcoming.
   useEffect(() => {
     videoRefs.current.forEach((v, idx) => {
       if (!v) return;
       if (idx === activeIdx) {
-        v.play().catch(() => undefined);
+        const p = v.play();
+        if (p && typeof p.catch === "function") p.catch(() => undefined);
       } else {
         v.pause();
       }
     });
-  }, [activeIdx]);
+    const upcoming = (feed ?? []).slice(activeIdx, activeIdx + 4);
+    if (upcoming.length) {
+      prewarm("dance-videos", upcoming.map((f) => f.mainVideo.storage_path));
+      prewarm("dance-videos", upcoming.map((f) => f.mainVideo.poster_url));
+    }
+  }, [activeIdx, feed]);
 
   const decide = async (kind: "next" | "match", item: FeedItem) => {
     if (!user) return;
