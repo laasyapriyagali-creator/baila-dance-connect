@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, MapPin, Music2, Play, Sparkles, User as UserIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { SignedImage } from "@/components/baila/SignedMedia";
-import { ROLE_LABEL, type DanceVideo, type Profile } from "@/lib/baila-types";
+import { type DanceVideo, type Profile } from "@/lib/baila-types";
 
 export const Route = createFileRoute("/_authenticated/app/u/$username")({
   component: PublicProfile,
@@ -46,8 +46,8 @@ function PublicProfile() {
     return (
       <div className="flex h-[60vh] flex-col items-center justify-center gap-3 px-6 text-center">
         <p className="font-display text-2xl">Dancer not found</p>
-        <Link to="/app/search" className="text-sm font-semibold underline">
-          Back to search
+        <Link to="/app/dance" className="text-sm font-semibold underline">
+          Back to Dance
         </Link>
       </div>
     );
@@ -65,7 +65,7 @@ function PublicProfile() {
         )}
         <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-baila-cream" />
         <Link
-          to="/app/search"
+          to="/app/dance"
           aria-label="Back"
           className="absolute left-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-baila-ink shadow-sm"
         >
@@ -83,11 +83,8 @@ function PublicProfile() {
             </div>
           )}
         </div>
-        <div className="mt-3 flex items-center gap-2">
+        <div className="mt-3">
           <h1 className="font-display text-2xl font-semibold text-baila-ink">{name}</h1>
-          <span className="rounded-full bg-baila-ink/5 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-baila-ink/70">
-            {ROLE_LABEL[profile.role]}
-          </span>
         </div>
         {profile.username && <p className="text-sm text-baila-ink/60">@{profile.username}</p>}
         {profile.headline && <p className="mt-1 text-[15px] font-medium text-baila-ink/85">{profile.headline}</p>}

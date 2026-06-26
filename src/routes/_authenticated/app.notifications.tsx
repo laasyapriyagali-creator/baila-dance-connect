@@ -51,7 +51,7 @@ function NotificationsPage() {
     <div className="px-5 pt-6">
       <header className="mb-5">
         <h1 className="font-display text-3xl font-semibold text-baila-ink">Inbox</h1>
-        <p className="mt-1 text-sm text-baila-ink/60">Matches, classes, and events from your community.</p>
+        <p className="mt-1 text-sm text-baila-ink/60">Dance requests and matches from your community.</p>
       </header>
 
       {isLoading ? (
