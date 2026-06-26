@@ -14,7 +14,123 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      connection_requests: {
+        Row: {
+          again_from: boolean
+          again_to: boolean
+          created_at: string
+          from_user: string
+          id: string
+          status: Database["public"]["Enums"]["connection_status"]
+          to_user: string
+          updated_at: string
+        }
+        Insert: {
+          again_from?: boolean
+          again_to?: boolean
+          created_at?: string
+          from_user: string
+          id?: string
+          status?: Database["public"]["Enums"]["connection_status"]
+          to_user: string
+          updated_at?: string
+        }
+        Update: {
+          again_from?: boolean
+          again_to?: boolean
+          created_at?: string
+          from_user?: string
+          id?: string
+          status?: Database["public"]["Enums"]["connection_status"]
+          to_user?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      dance_videos: {
+        Row: {
+          created_at: string
+          duration_seconds: number | null
+          id: string
+          is_main: boolean
+          position: number
+          poster_url: string | null
+          storage_path: string
+          user_id: string
+          video_url: string
+        }
+        Insert: {
+          created_at?: string
+          duration_seconds?: number | null
+          id?: string
+          is_main?: boolean
+          position?: number
+          poster_url?: string | null
+          storage_path: string
+          user_id: string
+          video_url: string
+        }
+        Update: {
+          created_at?: string
+          duration_seconds?: number | null
+          id?: string
+          is_main?: boolean
+          position?: number
+          poster_url?: string | null
+          storage_path?: string
+          user_id?: string
+          video_url?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          city: string | null
+          cover_url: string | null
+          created_at: string
+          dance_styles: string[]
+          display_name: string | null
+          experience: string | null
+          id: string
+          onboarded: boolean
+          socials: Json
+          updated_at: string
+          username: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          city?: string | null
+          cover_url?: string | null
+          created_at?: string
+          dance_styles?: string[]
+          display_name?: string | null
+          experience?: string | null
+          id: string
+          onboarded?: boolean
+          socials?: Json
+          updated_at?: string
+          username?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          city?: string | null
+          cover_url?: string | null
+          created_at?: string
+          dance_styles?: string[]
+          display_name?: string | null
+          experience?: string | null
+          id?: string
+          onboarded?: boolean
+          socials?: Json
+          updated_at?: string
+          username?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +139,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      connection_status: "pending" | "accepted" | "declined"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +266,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      connection_status: ["pending", "accepted", "declined"],
+    },
   },
 } as const
