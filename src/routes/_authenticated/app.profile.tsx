@@ -390,6 +390,10 @@ function ProfilePage() {
         )}
       </section>
 
+      {(profile.role === "instructor" || profile.role === "organizer") && user && (
+        <ManageContent userId={user.id} role={profile.role} />
+      )}
+
       {user && (
         <UploadVideoDialog userId={user.id} open={uploadOpen} onOpenChange={setUploadOpen} />
       )}
