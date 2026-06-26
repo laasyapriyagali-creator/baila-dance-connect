@@ -14,26 +14,41 @@ export type Connection = {
 export type ProfileVideo = {
   id: string;
   title: string;
-  duration: string; // e.g. "0:18"
+  duration: string;
   poster: string;
   isMain: boolean;
 };
 
+export type UserProfile = {
+  name: string;
+  username: string;
+  age: number;
+  city: string;
+  bio: string;
+  experience: "Beginner" | "Intermediate" | "Advanced" | "Pro";
+  avatar: string;
+  cover: string;
+  socials: { label: string; url: string }[];
+  followers: number;
+  following: number;
+};
+
 type State = {
-  // Dance feed
   index: number;
   next: () => void;
   sendRequest: (dancerId: string) => void;
 
-  // Connections
   connections: Connection[];
   acceptRequest: (id: string) => void;
   declineRequest: (id: string) => void;
   toggleDanceAgain: (id: string) => void;
 
-  // Profile
+  profile: UserProfile;
+  updateProfile: (patch: Partial<UserProfile>) => void;
+
   styles: string[];
   toggleStyle: (s: string) => void;
+
   videos: ProfileVideo[];
   addVideo: (v: Omit<ProfileVideo, "isMain" | "id"> & { id?: string }) => void;
   removeVideo: (id: string) => void;
@@ -65,7 +80,33 @@ const seedVideos: ProfileVideo[] = [
       "https://images.unsplash.com/photo-1485872299712-c3edf30a8d31?auto=format&fit=crop&w=600&q=80",
     isMain: false,
   },
+  {
+    id: "v3",
+    title: "Studio reel",
+    duration: "0:34",
+    poster:
+      "https://images.unsplash.com/photo-1519162808019-7de1683fa2ad?auto=format&fit=crop&w=600&q=80",
+    isMain: false,
+  },
 ];
+
+const seedProfile: UserProfile = {
+  name: "Alex",
+  username: "alex.moves",
+  age: 26,
+  city: "Madrid",
+  bio: "Freestyle + salsa. Dancing is how I say hello.",
+  experience: "Intermediate",
+  avatar:
+    "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?auto=format&fit=crop&w=400&q=80",
+  cover:
+    "https://images.unsplash.com/photo-1508700929628-666bc8bd84ea?auto=format&fit=crop&w=1200&q=80",
+  socials: [
+    { label: "Instagram", url: "https://instagram.com/alex.moves" },
+  ],
+  followers: 248,
+  following: 132,
+};
 
 export const useBaila = create<State>((set) => ({
   index: 0,
@@ -98,6 +139,9 @@ export const useBaila = create<State>((set) => ({
         c.id === id ? { ...c, danceAgain: !c.danceAgain } : c,
       ),
     })),
+
+  profile: seedProfile,
+  updateProfile: (patch) => set((s) => ({ profile: { ...s.profile, ...patch } })),
 
   styles: ["Freestyle", "Salsa"],
   toggleStyle: (s) =>
