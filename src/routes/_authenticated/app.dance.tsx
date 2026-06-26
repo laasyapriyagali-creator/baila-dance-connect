@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/lib/auth";
 import { DanceCard, type FeedItem } from "@/components/baila/DanceCard";
 import { DANCE_STYLES, type Profile, type DanceVideo } from "@/lib/baila-types";
+import { prewarm } from "@/lib/storage";
 import {
   Sheet,
   SheetContent,
