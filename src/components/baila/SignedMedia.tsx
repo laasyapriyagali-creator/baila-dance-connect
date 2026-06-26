@@ -41,8 +41,7 @@ export function SignedImage({
       className={className}
       loading={loading}
       decoding="async"
-      // @ts-expect-error fetchpriority is a valid HTML attribute, lower-cased in DOM
-      fetchpriority={fetchPriority}
+      fetchPriority={fetchPriority}
       onError={() => setUrl(null)}
     />
   );
@@ -61,6 +60,7 @@ type SignedVideoProps = {
   controls?: boolean;
   preload?: "none" | "metadata" | "auto";
   onClick?: () => void;
+  onLoadedMetadata?: () => void;
 };
 
 export const SignedVideo = forwardRef<HTMLVideoElement, SignedVideoProps>(function SignedVideo(
@@ -77,6 +77,7 @@ export const SignedVideo = forwardRef<HTMLVideoElement, SignedVideoProps>(functi
     controls = false,
     preload = "metadata",
     onClick,
+    onLoadedMetadata,
   },
   ref,
 ) {
@@ -144,6 +145,7 @@ export const SignedVideo = forwardRef<HTMLVideoElement, SignedVideoProps>(functi
       controls={controls}
       preload={preload}
       onClick={onClick}
+      onLoadedMetadata={onLoadedMetadata}
       onError={handleError}
     />
   );

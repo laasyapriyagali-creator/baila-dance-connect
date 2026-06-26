@@ -22,6 +22,7 @@ import { useSession } from "@/lib/auth";
 import { UploadVideoDialog } from "@/components/baila/UploadVideoDialog";
 import { EditProfileDialog } from "@/components/baila/EditProfileDialog";
 import { SignedImage } from "@/components/baila/SignedMedia";
+import { VideoPlayerDialog } from "@/components/baila/VideoPlayerDialog";
 import { type DanceVideo, type Profile } from "@/lib/baila-types";
 import {
   DropdownMenu,
@@ -46,6 +47,7 @@ function ProfilePage() {
   const qc = useQueryClient();
   const [uploadOpen, setUploadOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [playingVideo, setPlayingVideo] = useState<DanceVideo | null>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
   const avatarInputRef = useRef<HTMLInputElement>(null);
 
@@ -332,13 +334,30 @@ function ProfilePage() {
                 className="group relative overflow-hidden rounded-lg bg-baila-ink"
                 style={{ aspectRatio: "3 / 4" }}
               >
-                <SignedImage
-                  bucket="dance-videos"
-                  path={v.poster_url ?? v.storage_path}
-                  alt="Dance video"
-                  className="absolute inset-0 h-full w-full object-cover"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
+                <button
+                  type="button"
+                  aria-label="Play dance video"
+                  onClick={() => setPlayingVideo(v)}
+                  className="absolute inset-0 text-left"
+                >
+                  <SignedImage
+                    bucket="dance-videos"
+                    path={v.poster_url ?? v.storage_path}
+                    alt="Dance video"
+                    className="absolute inset-0 h-full w-full object-cover"
+                    fallback={
+                      <div className="absolute inset-0 flex items-center justify-center text-baila-cream/70">
+                        <Music2 className="h-6 w-6" />
+                      </div>
+                    }
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
+                  <span className="absolute inset-0 flex items-center justify-center">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/25 text-white backdrop-blur">
+                      <Play className="h-4 w-4" fill="currentColor" />
+                    </span>
+                  </span>
+                </button>
                 {v.is_main && (
                   <span className="absolute left-1.5 top-1.5 flex items-center gap-0.5 rounded-full bg-baila-yellow px-1.5 py-0.5 text-[9px] font-bold text-baila-ink">
                     <Star className="h-2.5 w-2.5" fill="currentColor" /> Main
@@ -349,11 +368,6 @@ function ProfilePage() {
                     0:{String(v.duration_seconds).padStart(2, "0")}
                   </span>
                 )}
-                <span className="absolute inset-0 flex items-center justify-center">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/25 text-white backdrop-blur">
-                    <Play className="h-4 w-4" fill="currentColor" />
-                  </span>
-                </span>
                 <div className="absolute bottom-1 right-1">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -397,6 +411,12 @@ function ProfilePage() {
           onOpenChange={setEditOpen}
         />
       )}
+      <VideoPlayerDialog
+        video={playingVideo}
+        title="Your dance video"
+        open={!!playingVideo}
+        onOpenChange={(open) => !open && setPlayingVideo(null)}
+      />
     </div>
   );
 }
