@@ -1,15 +1,13 @@
 import { Link } from "@tanstack/react-router";
-import { Music2, Sparkles, User, Search, Bell } from "lucide-react";
+import { Music2, Heart, User } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/lib/auth";
 
 const tabs = [
   { to: "/app/dance", label: "Dance", Icon: Music2 },
-  { to: "/app/search", label: "Search", Icon: Search },
-  { to: "/app/connections", label: "Connections", Icon: Sparkles, badge: "connections" as const },
-  { to: "/app/notifications", label: "Inbox", Icon: Bell, badge: "notifications" as const },
-  { to: "/app/profile", label: "You", Icon: User },
+  { to: "/app/date", label: "Date", Icon: Heart, badge: true as const },
+  { to: "/app/profile", label: "Profile", Icon: User },
 ] as const;
 
 export function BottomTabs() {
@@ -32,7 +30,7 @@ export function BottomTabs() {
           .eq("user_id", user!.id)
           .is("read_at", null),
       ]);
-      return { connections: reqs.count ?? 0, notifications: notifs.count ?? 0 };
+      return (reqs.count ?? 0) + (notifs.count ?? 0);
     },
   });
 
@@ -42,9 +40,9 @@ export function BottomTabs() {
       className="fixed inset-x-0 bottom-0 z-40 border-t border-baila-ink/10 bg-baila-cream/95 backdrop-blur"
       style={{ paddingBottom: "max(env(safe-area-inset-bottom), 0.5rem)" }}
     >
-      <ul className="mx-auto grid max-w-md grid-cols-5">
+      <ul className="mx-auto grid max-w-md grid-cols-3">
         {tabs.map(({ to, label, Icon, ...rest }) => {
-          const count = "badge" in rest && rest.badge && unseen ? unseen[rest.badge] : 0;
+          const count = "badge" in rest && rest.badge && unseen ? unseen : 0;
           return (
             <li key={to}>
               <Link
@@ -52,8 +50,8 @@ export function BottomTabs() {
                 activeProps={{ "data-active": "true" } as never}
                 className="group flex min-h-11 flex-col items-center gap-0.5 py-2.5 text-baila-ink/50 data-[active=true]:text-baila-ink"
               >
-                <span className="relative flex h-9 w-11 items-center justify-center rounded-full transition group-data-[active=true]:bg-baila-yellow">
-                  <Icon className="h-[18px] w-[18px]" strokeWidth={2.25} />
+                <span className="relative flex h-9 w-12 items-center justify-center rounded-full transition group-data-[active=true]:bg-baila-yellow">
+                  <Icon className="h-[19px] w-[19px]" strokeWidth={2.25} />
                   {count > 0 && (
                     <span
                       aria-label={`${count} unseen`}
@@ -63,7 +61,7 @@ export function BottomTabs() {
                     </span>
                   )}
                 </span>
-                <span className="text-[10px] font-semibold tracking-wide">{label}</span>
+                <span className="text-[11px] font-semibold tracking-wide">{label}</span>
               </Link>
             </li>
           );

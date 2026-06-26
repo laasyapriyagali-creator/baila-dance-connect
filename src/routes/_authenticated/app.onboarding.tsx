@@ -3,30 +3,24 @@ import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, Heart, Music2, Sparkles, Users } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/lib/auth";
-import {
-  DANCE_STYLES,
-  ROLE_LABEL,
-  type AppRole,
-  type Experience,
-  type Profile,
-} from "@/lib/baila-types";
+import { DANCE_STYLES, type Experience, type Profile } from "@/lib/baila-types";
 import { UploadVideoDialog } from "@/components/baila/UploadVideoDialog";
 
 export const Route = createFileRoute("/_authenticated/app/onboarding")({
   component: Onboarding,
 });
 
-const STEPS = ["role", "identity", "styles", "reel"] as const;
+const STEPS = ["welcome", "identity", "styles", "reel"] as const;
 type Step = (typeof STEPS)[number];
 
 function Onboarding() {
   const { user } = useSession();
   const qc = useQueryClient();
   const navigate = useNavigate();
-  const [step, setStep] = useState<Step>("role");
+  const [step, setStep] = useState<Step>("welcome");
   const [uploadOpen, setUploadOpen] = useState(false);
 
   const { data: profile } = useQuery({
@@ -39,7 +33,6 @@ function Onboarding() {
   });
 
   const [form, setForm] = useState({
-    role: "dancer" as AppRole,
     display_name: "",
     username: "",
     city: "",
@@ -51,7 +44,6 @@ function Onboarding() {
     if (profile) {
       setForm((f) => ({
         ...f,
-        role: profile.role ?? "dancer",
         display_name: profile.display_name ?? "",
         username: profile.username ?? "",
         city: profile.city ?? "",
@@ -79,11 +71,11 @@ function Onboarding() {
   const back = () => setStep(STEPS[Math.max(stepIdx - 1, 0)]);
 
   const persist = async (extra: Partial<Profile> = {}) => {
-    if (!user) return;
+    if (!user) return false;
     const { error } = await supabase
       .from("profiles")
       .update({
-        role: form.role,
+        role: "dancer",
         display_name: form.display_name.trim() || null,
         username: form.username.trim() || null,
         city: form.city.trim() || null,
@@ -117,52 +109,71 @@ function Onboarding() {
       </div>
 
       <motion.div key={step} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="flex-1">
-        {step === "role" && (
+        {step === "welcome" && (
           <>
-            <h1 className="font-display text-3xl font-semibold text-baila-ink">Welcome to Baila</h1>
-            <p className="mt-2 text-sm text-baila-ink/65">How will you show up here?</p>
-            <div className="mt-6 space-y-2">
-              {(["dancer", "instructor", "organizer"] as AppRole[]).map((r) => (
-                <button
-                  key={r}
-                  onClick={() => setForm({ ...form, role: r })}
-                  className={`w-full rounded-2xl border-2 px-4 py-4 text-left transition ${
-                    form.role === r ? "border-baila-ink bg-baila-yellow" : "border-baila-ink/10 bg-white"
-                  }`}
-                >
-                  <p className="font-display text-lg font-semibold text-baila-ink">{ROLE_LABEL[r]}</p>
-                  <p className="text-sm text-baila-ink/65">
-                    {r === "dancer" && "Discover dancers and meet for real-life dances."}
-                    {r === "instructor" && "Publish classes so dancers find your teaching."}
-                    {r === "organizer" && "Announce socials, jams, and events to the community."}
-                  </p>
-                </button>
-              ))}
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-baila-ink px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-baila-yellow">
+              <Sparkles className="h-3 w-3" /> Welcome to Baila
+            </span>
+            <h1 className="mt-4 font-display text-4xl font-semibold leading-tight text-baila-ink">
+              Meet your next dance partner.
+            </h1>
+            <p className="mt-3 text-[15px] leading-relaxed text-baila-ink/70">
+              Baila is a community where people connect through movement — not bios, not texts.
+              Find someone whose rhythm matches yours and meet for a real dance.
+            </p>
+            <div className="mt-7 space-y-3">
+              <Pillar
+                Icon={Music2}
+                title="Discover through dance"
+                body="Short videos, real energy. No selfies, no swiping on faces."
+              />
+              <Pillar
+                Icon={Heart}
+                title="Go on dance dates"
+                body="Match with someone, pick a spot, meet on the floor."
+              />
+              <Pillar
+                Icon={Users}
+                title="Find your scene"
+                body="Build friendships through your local dance community."
+              />
             </div>
           </>
         )}
 
         {step === "identity" && (
           <>
-            <h1 className="font-display text-3xl font-semibold text-baila-ink">Tell us who you are</h1>
-            <p className="mt-2 text-sm text-baila-ink/65">No bios required yet — keep it simple.</p>
+            <h1 className="font-display text-3xl font-semibold text-baila-ink">Who's dancing?</h1>
+            <p className="mt-2 text-sm text-baila-ink/65">Just the basics — your dance does the talking.</p>
             <div className="mt-6 space-y-3">
-              <Input value={form.display_name} onChange={(v) => setForm({ ...form, display_name: v })} label="Display name" placeholder="What should we call you?" />
+              <Input
+                value={form.display_name}
+                onChange={(v) => setForm({ ...form, display_name: v })}
+                label="Your name"
+                placeholder="What should partners call you?"
+              />
               <Input
                 value={form.username}
                 onChange={(v) => setForm({ ...form, username: v.replace(/[^a-z0-9._]/gi, "").toLowerCase() })}
                 label="Username"
                 placeholder="username"
               />
-              <Input value={form.city} onChange={(v) => setForm({ ...form, city: v })} label="City" placeholder="Where you dance most" />
+              <Input
+                value={form.city}
+                onChange={(v) => setForm({ ...form, city: v })}
+                label="City"
+                placeholder="Where you dance most"
+              />
             </div>
           </>
         )}
 
         {step === "styles" && (
           <>
-            <h1 className="font-display text-3xl font-semibold text-baila-ink">Your dance DNA</h1>
-            <p className="mt-2 text-sm text-baila-ink/65">Pick the styles you live for.</p>
+            <h1 className="font-display text-3xl font-semibold text-baila-ink">What moves you?</h1>
+            <p className="mt-2 text-sm text-baila-ink/65">
+              Pick the styles you love — we'll show you partners who feel the same beat.
+            </p>
             <div className="mt-6 flex flex-wrap gap-2">
               {DANCE_STYLES.map((s) => {
                 const on = form.dance_styles.includes(s);
@@ -205,24 +216,22 @@ function Onboarding() {
 
         {step === "reel" && (
           <>
-            <h1 className="font-display text-3xl font-semibold text-baila-ink">Drop a dance</h1>
+            <h1 className="font-display text-3xl font-semibold text-baila-ink">Show your dance.</h1>
             <p className="mt-2 text-sm text-baila-ink/65">
-              {form.role === "dancer"
-                ? "Your first clip is how others discover you. Keep it short, real, and yours."
-                : "Optional — but a clip helps dancers feel your energy first."}
+              One short clip is how partners discover you. Keep it real — phone footage is perfect.
             </p>
             <div className="mt-6 flex flex-col items-center justify-center gap-3 rounded-3xl border-2 border-dashed border-baila-ink/15 bg-baila-yellow-soft p-8 text-center">
-              <Sparkles className="h-7 w-7 text-baila-ink" />
+              <Music2 className="h-7 w-7 text-baila-ink" />
               <p className="font-display text-lg text-baila-ink">
                 {videoCount && videoCount > 0
-                  ? `${videoCount} video${videoCount === 1 ? "" : "s"} ready`
+                  ? `${videoCount} dance${videoCount === 1 ? "" : "s"} ready`
                   : "No dances yet"}
               </p>
               <button
                 onClick={() => setUploadOpen(true)}
                 className="rounded-full bg-baila-ink px-5 py-2.5 text-sm font-semibold text-baila-cream"
               >
-                {videoCount && videoCount > 0 ? "Upload another" : "Upload first dance"}
+                {videoCount && videoCount > 0 ? "Upload another" : "Upload your first dance"}
               </button>
             </div>
           </>
@@ -236,26 +245,40 @@ function Onboarding() {
         {step !== "reel" ? (
           <button
             onClick={async () => {
-              if (step === "identity" && !form.display_name.trim()) return toast.error("Add a display name");
+              if (step === "identity" && !form.display_name.trim()) return toast.error("Add your name");
               if (step === "styles" && form.dance_styles.length === 0) return toast.error("Pick at least one style");
-              await persist();
+              if (step !== "welcome") await persist();
               next();
             }}
             className="flex items-center gap-1.5 rounded-full bg-baila-ink px-5 py-3 text-sm font-semibold text-baila-cream"
           >
-            Continue <ArrowRight className="h-4 w-4" />
+            {step === "welcome" ? "Let's go" : "Continue"} <ArrowRight className="h-4 w-4" />
           </button>
         ) : (
           <button
             onClick={finish}
             className="flex items-center gap-1.5 rounded-full bg-baila-green px-5 py-3 text-sm font-semibold text-white"
           >
-            Enter Baila <ArrowRight className="h-4 w-4" />
+            Start dancing <ArrowRight className="h-4 w-4" />
           </button>
         )}
       </div>
 
       {user && <UploadVideoDialog userId={user.id} open={uploadOpen} onOpenChange={setUploadOpen} />}
+    </div>
+  );
+}
+
+function Pillar({ Icon, title, body }: { Icon: typeof Music2; title: string; body: string }) {
+  return (
+    <div className="flex items-start gap-3 rounded-2xl border border-baila-ink/10 bg-white p-4">
+      <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-baila-yellow text-baila-ink">
+        <Icon className="h-5 w-5" />
+      </span>
+      <div>
+        <p className="font-display text-base font-semibold text-baila-ink">{title}</p>
+        <p className="mt-0.5 text-sm text-baila-ink/65">{body}</p>
+      </div>
     </div>
   );
 }
