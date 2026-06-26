@@ -14,12 +14,11 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
 import { Route as AuthenticatedAppSettingsRouteImport } from './routes/_authenticated/app.settings'
-import { Route as AuthenticatedAppSearchRouteImport } from './routes/_authenticated/app.search'
 import { Route as AuthenticatedAppProfileRouteImport } from './routes/_authenticated/app.profile'
 import { Route as AuthenticatedAppOnboardingRouteImport } from './routes/_authenticated/app.onboarding'
 import { Route as AuthenticatedAppNotificationsRouteImport } from './routes/_authenticated/app.notifications'
+import { Route as AuthenticatedAppDateRouteImport } from './routes/_authenticated/app.date'
 import { Route as AuthenticatedAppDanceRouteImport } from './routes/_authenticated/app.dance'
-import { Route as AuthenticatedAppConnectionsRouteImport } from './routes/_authenticated/app.connections'
 import { Route as AuthenticatedAppUUsernameRouteImport } from './routes/_authenticated/app.u.$username'
 
 const AuthRoute = AuthRouteImport.update({
@@ -47,11 +46,6 @@ const AuthenticatedAppSettingsRoute =
     path: '/settings',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
-const AuthenticatedAppSearchRoute = AuthenticatedAppSearchRouteImport.update({
-  id: '/search',
-  path: '/search',
-  getParentRoute: () => AuthenticatedAppRoute,
-} as any)
 const AuthenticatedAppProfileRoute = AuthenticatedAppProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
@@ -69,17 +63,16 @@ const AuthenticatedAppNotificationsRoute =
     path: '/notifications',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppDateRoute = AuthenticatedAppDateRouteImport.update({
+  id: '/date',
+  path: '/date',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
 const AuthenticatedAppDanceRoute = AuthenticatedAppDanceRouteImport.update({
   id: '/dance',
   path: '/dance',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
-const AuthenticatedAppConnectionsRoute =
-  AuthenticatedAppConnectionsRouteImport.update({
-    id: '/connections',
-    path: '/connections',
-    getParentRoute: () => AuthenticatedAppRoute,
-  } as any)
 const AuthenticatedAppUUsernameRoute =
   AuthenticatedAppUUsernameRouteImport.update({
     id: '/u/$username',
@@ -91,12 +84,11 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/app': typeof AuthenticatedAppRouteWithChildren
-  '/app/connections': typeof AuthenticatedAppConnectionsRoute
   '/app/dance': typeof AuthenticatedAppDanceRoute
+  '/app/date': typeof AuthenticatedAppDateRoute
   '/app/notifications': typeof AuthenticatedAppNotificationsRoute
   '/app/onboarding': typeof AuthenticatedAppOnboardingRoute
   '/app/profile': typeof AuthenticatedAppProfileRoute
-  '/app/search': typeof AuthenticatedAppSearchRoute
   '/app/settings': typeof AuthenticatedAppSettingsRoute
   '/app/u/$username': typeof AuthenticatedAppUUsernameRoute
 }
@@ -104,12 +96,11 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/app': typeof AuthenticatedAppRouteWithChildren
-  '/app/connections': typeof AuthenticatedAppConnectionsRoute
   '/app/dance': typeof AuthenticatedAppDanceRoute
+  '/app/date': typeof AuthenticatedAppDateRoute
   '/app/notifications': typeof AuthenticatedAppNotificationsRoute
   '/app/onboarding': typeof AuthenticatedAppOnboardingRoute
   '/app/profile': typeof AuthenticatedAppProfileRoute
-  '/app/search': typeof AuthenticatedAppSearchRoute
   '/app/settings': typeof AuthenticatedAppSettingsRoute
   '/app/u/$username': typeof AuthenticatedAppUUsernameRoute
 }
@@ -119,12 +110,11 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/_authenticated/app': typeof AuthenticatedAppRouteWithChildren
-  '/_authenticated/app/connections': typeof AuthenticatedAppConnectionsRoute
   '/_authenticated/app/dance': typeof AuthenticatedAppDanceRoute
+  '/_authenticated/app/date': typeof AuthenticatedAppDateRoute
   '/_authenticated/app/notifications': typeof AuthenticatedAppNotificationsRoute
   '/_authenticated/app/onboarding': typeof AuthenticatedAppOnboardingRoute
   '/_authenticated/app/profile': typeof AuthenticatedAppProfileRoute
-  '/_authenticated/app/search': typeof AuthenticatedAppSearchRoute
   '/_authenticated/app/settings': typeof AuthenticatedAppSettingsRoute
   '/_authenticated/app/u/$username': typeof AuthenticatedAppUUsernameRoute
 }
@@ -134,12 +124,11 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/app'
-    | '/app/connections'
     | '/app/dance'
+    | '/app/date'
     | '/app/notifications'
     | '/app/onboarding'
     | '/app/profile'
-    | '/app/search'
     | '/app/settings'
     | '/app/u/$username'
   fileRoutesByTo: FileRoutesByTo
@@ -147,12 +136,11 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/app'
-    | '/app/connections'
     | '/app/dance'
+    | '/app/date'
     | '/app/notifications'
     | '/app/onboarding'
     | '/app/profile'
-    | '/app/search'
     | '/app/settings'
     | '/app/u/$username'
   id:
@@ -161,12 +149,11 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/_authenticated/app'
-    | '/_authenticated/app/connections'
     | '/_authenticated/app/dance'
+    | '/_authenticated/app/date'
     | '/_authenticated/app/notifications'
     | '/_authenticated/app/onboarding'
     | '/_authenticated/app/profile'
-    | '/_authenticated/app/search'
     | '/_authenticated/app/settings'
     | '/_authenticated/app/u/$username'
   fileRoutesById: FileRoutesById
@@ -214,13 +201,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppSettingsRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
-    '/_authenticated/app/search': {
-      id: '/_authenticated/app/search'
-      path: '/search'
-      fullPath: '/app/search'
-      preLoaderRoute: typeof AuthenticatedAppSearchRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
     '/_authenticated/app/profile': {
       id: '/_authenticated/app/profile'
       path: '/profile'
@@ -242,18 +222,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppNotificationsRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/date': {
+      id: '/_authenticated/app/date'
+      path: '/date'
+      fullPath: '/app/date'
+      preLoaderRoute: typeof AuthenticatedAppDateRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/dance': {
       id: '/_authenticated/app/dance'
       path: '/dance'
       fullPath: '/app/dance'
       preLoaderRoute: typeof AuthenticatedAppDanceRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
-    '/_authenticated/app/connections': {
-      id: '/_authenticated/app/connections'
-      path: '/connections'
-      fullPath: '/app/connections'
-      preLoaderRoute: typeof AuthenticatedAppConnectionsRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/u/$username': {
@@ -267,23 +247,21 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedAppRouteChildren {
-  AuthenticatedAppConnectionsRoute: typeof AuthenticatedAppConnectionsRoute
   AuthenticatedAppDanceRoute: typeof AuthenticatedAppDanceRoute
+  AuthenticatedAppDateRoute: typeof AuthenticatedAppDateRoute
   AuthenticatedAppNotificationsRoute: typeof AuthenticatedAppNotificationsRoute
   AuthenticatedAppOnboardingRoute: typeof AuthenticatedAppOnboardingRoute
   AuthenticatedAppProfileRoute: typeof AuthenticatedAppProfileRoute
-  AuthenticatedAppSearchRoute: typeof AuthenticatedAppSearchRoute
   AuthenticatedAppSettingsRoute: typeof AuthenticatedAppSettingsRoute
   AuthenticatedAppUUsernameRoute: typeof AuthenticatedAppUUsernameRoute
 }
 
 const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
-  AuthenticatedAppConnectionsRoute: AuthenticatedAppConnectionsRoute,
   AuthenticatedAppDanceRoute: AuthenticatedAppDanceRoute,
+  AuthenticatedAppDateRoute: AuthenticatedAppDateRoute,
   AuthenticatedAppNotificationsRoute: AuthenticatedAppNotificationsRoute,
   AuthenticatedAppOnboardingRoute: AuthenticatedAppOnboardingRoute,
   AuthenticatedAppProfileRoute: AuthenticatedAppProfileRoute,
-  AuthenticatedAppSearchRoute: AuthenticatedAppSearchRoute,
   AuthenticatedAppSettingsRoute: AuthenticatedAppSettingsRoute,
   AuthenticatedAppUUsernameRoute: AuthenticatedAppUUsernameRoute,
 }

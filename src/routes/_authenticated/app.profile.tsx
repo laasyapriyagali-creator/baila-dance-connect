@@ -22,8 +22,7 @@ import { useSession } from "@/lib/auth";
 import { UploadVideoDialog } from "@/components/baila/UploadVideoDialog";
 import { EditProfileDialog } from "@/components/baila/EditProfileDialog";
 import { SignedImage } from "@/components/baila/SignedMedia";
-import { ManageContent } from "@/components/baila/ManageContent";
-import { ROLE_LABEL, type DanceVideo, type Profile } from "@/lib/baila-types";
+import { type DanceVideo, type Profile } from "@/lib/baila-types";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -234,11 +233,8 @@ function ProfilePage() {
           </button>
         </div>
 
-        <div className="mt-3 flex items-center gap-2">
+        <div className="mt-3">
           <h1 className="font-display text-2xl font-semibold leading-tight text-baila-ink">{name}</h1>
-          <span className="rounded-full bg-baila-ink/5 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-baila-ink/70">
-            {ROLE_LABEL[profile.role]}
-          </span>
         </div>
         {profile.username && <p className="text-sm text-baila-ink/60">@{profile.username}</p>}
         {profile.headline && (
@@ -390,9 +386,6 @@ function ProfilePage() {
         )}
       </section>
 
-      {(profile.role === "instructor" || profile.role === "organizer") && user && (
-        <ManageContent userId={user.id} role={profile.role} />
-      )}
 
       {user && (
         <UploadVideoDialog userId={user.id} open={uploadOpen} onOpenChange={setUploadOpen} />

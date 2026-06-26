@@ -177,8 +177,8 @@ function DanceFeed() {
             <SlidersHorizontal className="h-4 w-4" />
           </button>
           <button
-            aria-label="Notifications"
-            onClick={() => navigate({ to: "/app/notifications" })}
+            aria-label="Dance dates"
+            onClick={() => navigate({ to: "/app/date" })}
             className="flex h-10 w-10 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur"
           >
             <Bell className="h-4 w-4" />

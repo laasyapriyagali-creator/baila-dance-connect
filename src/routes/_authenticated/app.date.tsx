@@ -11,6 +11,7 @@ import {
   CalendarPlus,
   Wand2,
   ChevronDown,
+  Heart,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -20,14 +21,14 @@ import { useSession } from "@/lib/auth";
 import { ICE_BREAKERS, type ConnectionRequest, type DanceVideo, type Profile } from "@/lib/baila-types";
 import { buildIcs, downloadIcs } from "@/lib/ics";
 
-export const Route = createFileRoute("/_authenticated/app/connections")({
+export const Route = createFileRoute("/_authenticated/app/date")({
   head: () => ({
     meta: [
-      { title: "Connections — Baila" },
-      { name: "description", content: "Your dance connections." },
+      { title: "Date — Baila" },
+      { name: "description", content: "Your dance partners and upcoming dance dates." },
     ],
   }),
-  component: ConnectionsPage,
+  component: DatePage,
 });
 
 type EnrichedConnection = {
@@ -77,16 +78,16 @@ async function fetchConnections(userId: string): Promise<EnrichedConnection[]> {
 }
 
 const TABS = [
-  { key: "pending", label: "Pending" },
-  { key: "active", label: "Active" },
+  { key: "requests", label: "Requests" },
+  { key: "matches", label: "Matches" },
   { key: "past", label: "Past" },
 ] as const;
 type TabKey = (typeof TABS)[number]["key"];
 
-function ConnectionsPage() {
+function DatePage() {
   const { user } = useSession();
   const qc = useQueryClient();
-  const [tab, setTab] = useState<TabKey>("pending");
+  const [tab, setTab] = useState<TabKey>("requests");
   const [expanded, setExpanded] = useState<string | null>(null);
 
   const { data, isLoading } = useQuery({
@@ -98,18 +99,17 @@ function ConnectionsPage() {
   const items = data ?? [];
   const grouped: Record<TabKey, EnrichedConnection[]> = useMemo(
     () => ({
-      pending: items.filter((c) => c.request.status === "pending"),
-      active: items.filter((c) => c.request.status === "accepted"),
+      requests: items.filter((c) => c.request.status === "pending"),
+      matches: items.filter((c) => c.request.status === "accepted"),
       past: items.filter((c) => c.request.status === "declined"),
     }),
     [items],
   );
   const visible = grouped[tab];
 
-  // Mark incoming pending as seen when the user views the Pending tab.
   useEffect(() => {
-    if (!user || tab !== "pending") return;
-    const unseen = grouped.pending
+    if (!user || tab !== "requests") return;
+    const unseen = grouped.requests
       .filter((c) => c.direction === "in" && !c.request.seen_at)
       .map((c) => c.request.id);
     if (unseen.length === 0) return;
@@ -121,7 +121,7 @@ function ConnectionsPage() {
         qc.invalidateQueries({ queryKey: ["unseen-counts"] });
         qc.invalidateQueries({ queryKey: ["connections", user.id] });
       });
-  }, [tab, grouped.pending, user, qc]);
+  }, [tab, grouped.requests, user, qc]);
 
   const invalidate = () => qc.invalidateQueries({ queryKey: ["connections", user?.id] });
 
@@ -129,7 +129,7 @@ function ConnectionsPage() {
     const { error } = await supabase.from("connection_requests").update({ status: "accepted" }).eq("id", id);
     if (error) toast.error(error.message);
     else {
-      toast.success("Match! Plan your dance.");
+      toast.success("It's a match — plan your dance.");
       invalidate();
     }
   };
@@ -149,8 +149,10 @@ function ConnectionsPage() {
   return (
     <div className="px-5 pt-6">
       <header className="mb-5">
-        <h1 className="font-display text-3xl font-semibold text-baila-ink">Connections</h1>
-        <p className="mt-1 text-sm text-baila-ink/60">Real people, real dances. No chatting required.</p>
+        <h1 className="font-display text-3xl font-semibold text-baila-ink">Date</h1>
+        <p className="mt-1 text-sm text-baila-ink/60">
+          Your dance partners and upcoming dance dates — meet on the floor, not in a chat.
+        </p>
       </header>
 
       <div className="mb-5 flex rounded-full bg-baila-ink/5 p-1">
@@ -227,10 +229,10 @@ function ConnectionsPage() {
                   </div>
                   {c.request.status === "pending" && c.direction === "in" && (
                     <div className="flex gap-2">
-                      <button onClick={() => decline(c.request.id)} aria-label="Decline" className="flex h-10 w-10 items-center justify-center rounded-full bg-baila-ink/5 text-baila-ink/70">
+                      <button onClick={() => decline(c.request.id)} aria-label="Pass" className="flex h-10 w-10 items-center justify-center rounded-full bg-baila-ink/5 text-baila-ink/70">
                         <X className="h-5 w-5" />
                       </button>
-                      <button onClick={() => accept(c.request.id)} aria-label="Accept" className="flex h-10 w-10 items-center justify-center rounded-full bg-baila-green text-white">
+                      <button onClick={() => accept(c.request.id)} aria-label="Match" className="flex h-10 w-10 items-center justify-center rounded-full bg-baila-green text-white">
                         <Check className="h-5 w-5" />
                       </button>
                     </div>
@@ -257,7 +259,7 @@ function ConnectionsPage() {
                       aria-expanded={open}
                     >
                       <span className="flex items-center gap-1.5">
-                        <Sparkles className="h-3.5 w-3.5" /> Plan your dance IRL
+                        <Sparkles className="h-3.5 w-3.5" /> Plan your dance date
                       </span>
                       <ChevronDown className={`h-4 w-4 transition ${open ? "rotate-180" : ""}`} />
                     </button>
@@ -291,7 +293,7 @@ function MeetIRLPanel({ c }: { c: EnrichedConnection }) {
     const start = new Date(when);
     if (Number.isNaN(start.getTime())) return toast.error("Pick a valid date and time");
     const ics = buildIcs({
-      title: `Baila with ${otherName}`,
+      title: `Dance date with ${otherName}`,
       description: `Style: ${sharedStyles[0] ?? "your call"}\nIce-breaker: ${iceBreaker}`,
       location: where || c.other.city || "",
       start,
@@ -325,7 +327,7 @@ function MeetIRLPanel({ c }: { c: EnrichedConnection }) {
         <input
           value={where}
           onChange={(e) => setWhere(e.target.value)}
-          placeholder={c.other.city ? `Studio or spot in ${c.other.city}` : "Studio or spot"}
+          placeholder={c.other.city ? `Studio or social in ${c.other.city}` : "Studio or social"}
           className="rounded-xl border border-baila-ink/15 bg-white px-3 py-2 text-sm"
         />
       </div>
@@ -336,7 +338,7 @@ function MeetIRLPanel({ c }: { c: EnrichedConnection }) {
         <CalendarPlus className="h-4 w-4" /> Add to calendar
       </button>
       <p className="mt-2 text-center text-[11px] text-baila-ink/55">
-        We don't share contact info — meet IRL, dance, see what happens.
+        No chat needed — show up, dance, see what happens.
       </p>
     </div>
   );
@@ -344,14 +346,14 @@ function MeetIRLPanel({ c }: { c: EnrichedConnection }) {
 
 function EmptyState({ tab }: { tab: TabKey }) {
   const copy = {
-    pending: "No pending requests. Keep dancing — someone might say yes soon.",
-    active: "No active connections yet. Find someone whose energy matches yours.",
-    past: "Past dances will appear here.",
+    requests: "No dance requests yet. Open Dance and ask someone to share a floor.",
+    matches: "No matches yet. When someone says yes, you'll plan your dance date here.",
+    past: "Dances you've passed on will appear here.",
   }[tab];
   return (
     <div className="flex flex-col items-center gap-3 rounded-3xl border border-dashed border-baila-ink/15 bg-white px-6 py-12 text-center">
       <div className="flex h-12 w-12 items-center justify-center rounded-full bg-baila-yellow">
-        <Sparkles className="h-5 w-5 text-baila-ink" />
+        <Heart className="h-5 w-5 text-baila-ink" />
       </div>
       <p className="max-w-xs text-sm text-baila-ink/65">{copy}</p>
     </div>
