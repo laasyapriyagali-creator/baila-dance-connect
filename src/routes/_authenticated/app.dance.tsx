@@ -44,51 +44,52 @@ function DanceFeed() {
   const { data: feed, isLoading } = useQuery({
     queryKey: ["feed", user?.id, styleFilter, cityOnly, me?.city],
     enabled: !!user,
+    staleTime: 30_000,
     queryFn: async () => {
-      const [{ data: videos }, { data: skipped }, { data: matched }] = await Promise.all([
+      // Single relation pull: pending/declined sent by me OR accepted in either direction.
+      const [videosRes, relRes] = await Promise.all([
         supabase
           .from("dance_videos")
           .select("*")
           .eq("is_main", true)
           .neq("user_id", user!.id)
           .order("created_at", { ascending: false })
-          .limit(120),
-        supabase.from("connection_requests").select("to_user").eq("from_user", user!.id),
+          .limit(60),
         supabase
           .from("connection_requests")
           .select("from_user,to_user,status")
           .or(`from_user.eq.${user!.id},to_user.eq.${user!.id}`),
       ]);
       const excluded = new Set<string>();
-      (skipped ?? []).forEach((r) => excluded.add(r.to_user));
-      (matched ?? []).forEach((r) => {
+      (relRes.data ?? []).forEach((r) => {
+        if (r.from_user === user!.id) excluded.add(r.to_user);
         if (r.status === "accepted") {
           excluded.add(r.from_user);
           excluded.add(r.to_user);
         }
       });
-      const vids = (videos ?? []).filter((v) => !excluded.has(v.user_id)) as DanceVideo[];
+      const vids = (videosRes.data ?? []).filter((v) => !excluded.has(v.user_id)) as DanceVideo[];
       if (vids.length === 0) return [] as FeedItem[];
       const ids = Array.from(new Set(vids.map((v) => v.user_id)));
       const { data: profs } = await supabase.from("profiles").select("*").in("id", ids);
       const map = new Map((profs ?? []).map((p) => [p.id, p as Profile]));
-      const items: FeedItem[] = vids
-        .map((v) => {
-          const p = map.get(v.user_id);
-          return p ? { profile: p, mainVideo: v } : null;
-        })
-        .filter((x): x is FeedItem => !!x)
-        .filter((it) => (styleFilter.length ? it.profile.dance_styles.some((s) => styleFilter.includes(s)) : true))
-        .filter((it) => (cityOnly && me?.city ? it.profile.city === me.city : true));
-      // Recommendation scoring: overlapping styles + same city + recency.
       const mineStyles = new Set(me?.dance_styles ?? []);
+      const now = Date.now();
       const score = (it: FeedItem) => {
         let s = 0;
-        it.profile.dance_styles.forEach((st) => mineStyles.has(st) && (s += 3));
+        for (const st of it.profile.dance_styles) if (mineStyles.has(st)) s += 3;
         if (me?.city && it.profile.city === me.city) s += 2;
-        s += Math.max(0, 5 - (Date.now() - new Date(it.mainVideo.created_at).getTime()) / 86_400_000);
+        s += Math.max(0, 5 - (now - new Date(it.mainVideo.created_at).getTime()) / 86_400_000);
         return s;
       };
+      const items: FeedItem[] = [];
+      for (const v of vids) {
+        const p = map.get(v.user_id);
+        if (!p) continue;
+        if (styleFilter.length && !p.dance_styles.some((s) => styleFilter.includes(s))) continue;
+        if (cityOnly && me?.city && p.city !== me.city) continue;
+        items.push({ profile: p, mainVideo: v });
+      }
       return items.sort((a, b) => score(b) - score(a));
     },
   });
