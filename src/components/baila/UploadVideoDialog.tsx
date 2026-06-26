@@ -44,8 +44,11 @@ export function UploadVideoDialog({
 
   const addFiles = (files: FileList | File[]) => {
     const incoming: Item[] = [];
+    const videoExt = /\.(mp4|mov|m4v|webm|mkv|avi|3gp|3gpp|hevc|qt)$/i;
     Array.from(files).forEach((file) => {
-      if (!file.type.startsWith("video/")) {
+      const looksLikeVideo =
+        (file.type && file.type.startsWith("video/")) || videoExt.test(file.name);
+      if (!looksLikeVideo) {
         toast.error(`${file.name} isn't a video.`);
         return;
       }
@@ -65,6 +68,7 @@ export function UploadVideoDialog({
     });
     if (incoming.length) setItems((prev) => [...prev, ...incoming]);
   };
+
 
   const update = (id: string, patch: Partial<Item>) =>
     setItems((prev) => prev.map((it) => (it.id === id ? { ...it, ...patch } : it)));
@@ -88,18 +92,22 @@ export function UploadVideoDialog({
       const videoPath = `${base}.${ext}`;
       const posterPath = `${base}.jpg`;
 
+      const contentType = item.file.type || "video/mp4";
       const { error: upErr } = await supabase.storage
         .from("dance-videos")
-        .upload(videoPath, item.file, { contentType: item.file.type, upsert: false });
+        .upload(videoPath, item.file, { contentType, upsert: false });
       if (upErr) throw upErr;
       update(item.id, { progress: 70 });
 
+      let posterUploaded = false;
       if (captured?.blob) {
-        await supabase.storage
+        const { error: posterErr } = await supabase.storage
           .from("dance-videos")
           .upload(posterPath, captured.blob, { contentType: "image/jpeg", upsert: false });
+        if (!posterErr) posterUploaded = true;
       }
       update(item.id, { progress: 88 });
+
 
       const { data: existing } = await supabase
         .from("dance_videos")
@@ -112,7 +120,7 @@ export function UploadVideoDialog({
         user_id: userId,
         storage_path: videoPath,
         video_url: videoPath,
-        poster_url: captured?.blob ? posterPath : null,
+        poster_url: posterUploaded ? posterPath : null,
         duration_seconds: duration || null,
         is_main: item.setMain || isFirst,
         position: Date.now(),
