@@ -17,6 +17,7 @@ import { Route as AuthenticatedAppSettingsRouteImport } from './routes/_authenti
 import { Route as AuthenticatedAppProfileRouteImport } from './routes/_authenticated/app.profile'
 import { Route as AuthenticatedAppOnboardingRouteImport } from './routes/_authenticated/app.onboarding'
 import { Route as AuthenticatedAppNotificationsRouteImport } from './routes/_authenticated/app.notifications'
+import { Route as AuthenticatedAppDateRouteImport } from './routes/_authenticated/app.date'
 import { Route as AuthenticatedAppDanceRouteImport } from './routes/_authenticated/app.dance'
 import { Route as AuthenticatedAppUUsernameRouteImport } from './routes/_authenticated/app.u.$username'
 
@@ -62,6 +63,11 @@ const AuthenticatedAppNotificationsRoute =
     path: '/notifications',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppDateRoute = AuthenticatedAppDateRouteImport.update({
+  id: '/date',
+  path: '/date',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
 const AuthenticatedAppDanceRoute = AuthenticatedAppDanceRouteImport.update({
   id: '/dance',
   path: '/dance',
@@ -79,6 +85,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/app': typeof AuthenticatedAppRouteWithChildren
   '/app/dance': typeof AuthenticatedAppDanceRoute
+  '/app/date': typeof AuthenticatedAppDateRoute
   '/app/notifications': typeof AuthenticatedAppNotificationsRoute
   '/app/onboarding': typeof AuthenticatedAppOnboardingRoute
   '/app/profile': typeof AuthenticatedAppProfileRoute
@@ -90,6 +97,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/app': typeof AuthenticatedAppRouteWithChildren
   '/app/dance': typeof AuthenticatedAppDanceRoute
+  '/app/date': typeof AuthenticatedAppDateRoute
   '/app/notifications': typeof AuthenticatedAppNotificationsRoute
   '/app/onboarding': typeof AuthenticatedAppOnboardingRoute
   '/app/profile': typeof AuthenticatedAppProfileRoute
@@ -103,6 +111,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/_authenticated/app': typeof AuthenticatedAppRouteWithChildren
   '/_authenticated/app/dance': typeof AuthenticatedAppDanceRoute
+  '/_authenticated/app/date': typeof AuthenticatedAppDateRoute
   '/_authenticated/app/notifications': typeof AuthenticatedAppNotificationsRoute
   '/_authenticated/app/onboarding': typeof AuthenticatedAppOnboardingRoute
   '/_authenticated/app/profile': typeof AuthenticatedAppProfileRoute
@@ -116,6 +125,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/app'
     | '/app/dance'
+    | '/app/date'
     | '/app/notifications'
     | '/app/onboarding'
     | '/app/profile'
@@ -127,6 +137,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/app'
     | '/app/dance'
+    | '/app/date'
     | '/app/notifications'
     | '/app/onboarding'
     | '/app/profile'
@@ -139,6 +150,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/_authenticated/app'
     | '/_authenticated/app/dance'
+    | '/_authenticated/app/date'
     | '/_authenticated/app/notifications'
     | '/_authenticated/app/onboarding'
     | '/_authenticated/app/profile'
@@ -210,6 +222,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppNotificationsRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/date': {
+      id: '/_authenticated/app/date'
+      path: '/date'
+      fullPath: '/app/date'
+      preLoaderRoute: typeof AuthenticatedAppDateRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/dance': {
       id: '/_authenticated/app/dance'
       path: '/dance'
@@ -229,6 +248,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedAppRouteChildren {
   AuthenticatedAppDanceRoute: typeof AuthenticatedAppDanceRoute
+  AuthenticatedAppDateRoute: typeof AuthenticatedAppDateRoute
   AuthenticatedAppNotificationsRoute: typeof AuthenticatedAppNotificationsRoute
   AuthenticatedAppOnboardingRoute: typeof AuthenticatedAppOnboardingRoute
   AuthenticatedAppProfileRoute: typeof AuthenticatedAppProfileRoute
@@ -238,6 +258,7 @@ interface AuthenticatedAppRouteChildren {
 
 const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppDanceRoute: AuthenticatedAppDanceRoute,
+  AuthenticatedAppDateRoute: AuthenticatedAppDateRoute,
   AuthenticatedAppNotificationsRoute: AuthenticatedAppNotificationsRoute,
   AuthenticatedAppOnboardingRoute: AuthenticatedAppOnboardingRoute,
   AuthenticatedAppProfileRoute: AuthenticatedAppProfileRoute,
