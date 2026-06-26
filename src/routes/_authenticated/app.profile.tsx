@@ -22,7 +22,8 @@ import { useSession } from "@/lib/auth";
 import { UploadVideoDialog } from "@/components/baila/UploadVideoDialog";
 import { EditProfileDialog } from "@/components/baila/EditProfileDialog";
 import { SignedImage } from "@/components/baila/SignedMedia";
-import type { DanceVideo, Profile } from "@/lib/baila-types";
+import { ManageContent } from "@/components/baila/ManageContent";
+import { ROLE_LABEL, type DanceVideo, type Profile } from "@/lib/baila-types";
 import {
   DropdownMenu,
   DropdownMenuContent,
