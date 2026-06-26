@@ -76,8 +76,11 @@ export function UploadVideoDialog({
   const remove = (id: string) =>
     setItems((prev) => prev.filter((it) => it.id !== id));
 
-  const uploadOne = async (item: Item) => {
+  const uploadOne = async (item: Item): Promise<boolean> => {
     update(item.id, { status: "uploading", progress: 5, error: undefined });
+    let videoPath: string | null = null;
+    let posterPath: string | null = null;
+    let posterUploaded = false;
     try {
       // Probe duration + capture poster.
       const captured = await capturePoster(item.file);
@@ -89,8 +92,8 @@ export function UploadVideoDialog({
 
       const ext = item.file.name.split(".").pop()?.toLowerCase() || "mp4";
       const base = `${userId}/${crypto.randomUUID()}`;
-      const videoPath = `${base}.${ext}`;
-      const posterPath = `${base}.jpg`;
+      videoPath = `${base}.${ext}`;
+      posterPath = `${base}.jpg`;
 
       const contentType = item.file.type || "video/mp4";
       const { error: upErr } = await supabase.storage
@@ -99,7 +102,6 @@ export function UploadVideoDialog({
       if (upErr) throw upErr;
       update(item.id, { progress: 70 });
 
-      let posterUploaded = false;
       if (captured?.blob) {
         const { error: posterErr } = await supabase.storage
           .from("dance-videos")
@@ -123,26 +125,36 @@ export function UploadVideoDialog({
         poster_url: posterUploaded ? posterPath : null,
         duration_seconds: duration || null,
         is_main: item.setMain || isFirst,
-        position: Date.now(),
+        // Keep this inside Postgres INT range. Newest-first ordering still comes
+        // from created_at; position is reserved for future manual ordering.
+        position: 0,
       });
       if (insErr) throw insErr;
 
       update(item.id, { progress: 100, status: "done" });
-      qc.invalidateQueries({ queryKey: ["my-videos"] });
+      qc.invalidateQueries({ queryKey: ["my-videos", userId] });
       qc.invalidateQueries({ queryKey: ["feed"] });
+      return true;
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Upload failed";
+      if (videoPath) {
+        await supabase.storage
+          .from("dance-videos")
+          .remove([videoPath, posterUploaded && posterPath ? posterPath : null].filter(Boolean) as string[]);
+      }
       update(item.id, { status: "error", error: msg, progress: 0 });
+      return false;
     }
   };
 
   const startAll = async () => {
-    for (const it of items.filter((x) => x.status === "queued" || x.status === "error")) {
-      await uploadOne(it);
+    const pending = items.filter((x) => x.status === "queued" || x.status === "error");
+    let uploadedCount = 0;
+    for (const it of pending) {
+      if (await uploadOne(it)) uploadedCount += 1;
     }
-    const allDone = items.every((it) => it.status === "done");
-    if (allDone) {
-      toast.success(items.length === 1 ? "Dance uploaded" : `${items.length} dances uploaded`);
+    if (uploadedCount === pending.length && pending.length > 0) {
+      toast.success(pending.length === 1 ? "Dance uploaded" : `${pending.length} dances uploaded`);
       setTimeout(() => {
         setItems([]);
         onOpenChange(false);
