@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Upload } from "lucide-react";
-import { useBaila } from "@/store/baila";
+import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog,
   DialogContent,
@@ -10,43 +12,81 @@ import {
 } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
 
-const SAMPLE_POSTERS = [
-  "https://images.unsplash.com/photo-1547153760-18fc86324498?auto=format&fit=crop&w=600&q=80",
-  "https://images.unsplash.com/photo-1524594152303-9fd13543fe6e?auto=format&fit=crop&w=600&q=80",
-  "https://images.unsplash.com/photo-1535525153412-5a42439a210d?auto=format&fit=crop&w=600&q=80",
-  "https://images.unsplash.com/photo-1518609878373-06d740f60d8b?auto=format&fit=crop&w=600&q=80",
-];
-
 export function UploadVideoDialog({
+  userId,
   open,
   onOpenChange,
 }: {
+  userId: string;
   open: boolean;
   onOpenChange: (v: boolean) => void;
 }) {
-  const addVideo = useBaila((s) => s.addVideo);
+  const qc = useQueryClient();
+  const inputRef = useRef<HTMLInputElement>(null);
   const [progress, setProgress] = useState(0);
   const [uploading, setUploading] = useState(false);
 
-  const start = () => {
+  const onPick = () => inputRef.current?.click();
+
+  const onFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    if (!file.type.startsWith("video/")) {
+      toast.error("Please choose a video file");
+      return;
+    }
+    if (file.size > 60 * 1024 * 1024) {
+      toast.error("Video too large. Keep it under 60MB.");
+      return;
+    }
+
     setUploading(true);
-    setProgress(0);
-    let p = 0;
-    const t = setInterval(() => {
-      p += 12;
-      setProgress(Math.min(p, 100));
-      if (p >= 100) {
-        clearInterval(t);
-        const poster = SAMPLE_POSTERS[Math.floor(Math.random() * SAMPLE_POSTERS.length)];
-        const dur = `0:${(10 + Math.floor(Math.random() * 40)).toString().padStart(2, "0")}`;
-        addVideo({ title: "New dance clip", duration: dur, poster });
-        setTimeout(() => {
-          setUploading(false);
-          setProgress(0);
-          onOpenChange(false);
-        }, 400);
-      }
-    }, 180);
+    setProgress(10);
+
+    try {
+      const ext = file.name.split(".").pop() || "mp4";
+      const path = `${userId}/${crypto.randomUUID()}.${ext}`;
+      setProgress(35);
+      const { error: upErr } = await supabase.storage
+        .from("dance-videos")
+        .upload(path, file, { contentType: file.type, upsert: false });
+      if (upErr) throw upErr;
+      setProgress(75);
+
+      const duration = await readDuration(file).catch(() => null);
+
+      const { data: existing } = await supabase
+        .from("dance_videos")
+        .select("id")
+        .eq("user_id", userId)
+        .limit(1);
+      const isFirst = !existing || existing.length === 0;
+
+      const { error: insErr } = await supabase.from("dance_videos").insert({
+        user_id: userId,
+        storage_path: path,
+        video_url: path,
+        duration_seconds: duration,
+        is_main: isFirst,
+        position: Date.now(),
+      });
+      if (insErr) throw insErr;
+
+      setProgress(100);
+      await qc.invalidateQueries({ queryKey: ["my-videos"] });
+      await qc.invalidateQueries({ queryKey: ["feed"] });
+      toast.success("Dance uploaded");
+      setTimeout(() => {
+        setUploading(false);
+        setProgress(0);
+        onOpenChange(false);
+      }, 300);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Upload failed");
+      setUploading(false);
+      setProgress(0);
+    }
   };
 
   return (
@@ -55,18 +95,27 @@ export function UploadVideoDialog({
         <DialogHeader>
           <DialogTitle className="font-display text-2xl">Upload a dance video</DialogTitle>
           <DialogDescription>
-            Casual is better than perfect. Show how you move — kitchen, street, studio, anywhere.
+            Casual beats perfect. Show how you move — kitchen, street, studio, anywhere.
           </DialogDescription>
         </DialogHeader>
 
+        <input
+          ref={inputRef}
+          type="file"
+          accept="video/*"
+          capture="environment"
+          className="hidden"
+          onChange={onFile}
+        />
+
         {!uploading ? (
           <button
-            onClick={start}
+            onClick={onPick}
             className="flex flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-baila-ink/20 bg-baila-yellow-soft p-10 text-baila-ink transition hover:border-baila-ink/40"
           >
             <Upload className="h-8 w-8" />
             <span className="font-semibold">Tap to choose a clip</span>
-            <span className="text-xs text-baila-ink/60">Up to 60 seconds · vertical</span>
+            <span className="text-xs text-baila-ink/60">Up to 60s · vertical · max 60MB</span>
           </button>
         ) : (
           <div className="space-y-3 py-2">
@@ -78,4 +127,21 @@ export function UploadVideoDialog({
       </DialogContent>
     </Dialog>
   );
+}
+
+function readDuration(file: File): Promise<number> {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const v = document.createElement("video");
+    v.preload = "metadata";
+    v.onloadedmetadata = () => {
+      URL.revokeObjectURL(url);
+      resolve(Math.round(v.duration));
+    };
+    v.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("metadata"));
+    };
+    v.src = url;
+  });
 }
