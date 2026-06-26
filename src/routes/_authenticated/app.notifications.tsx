@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { Bell, Sparkles, GraduationCap, CalendarDays, Heart } from "lucide-react";
+import { Bell, Sparkles, Heart } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/lib/auth";
@@ -11,10 +11,8 @@ export const Route = createFileRoute("/_authenticated/app/notifications")({
 });
 
 const KIND_META: Record<string, { Icon: typeof Bell; label: string; href: string }> = {
-  connection_request: { Icon: Heart, label: "wants to dance with you", href: "/app/connections" },
-  connection_accepted: { Icon: Sparkles, label: "matched with you", href: "/app/connections" },
-  new_class: { Icon: GraduationCap, label: "published a class", href: "/app/search" },
-  new_event: { Icon: CalendarDays, label: "announced an event", href: "/app/search" },
+  connection_request: { Icon: Heart, label: "wants to dance with you", href: "/app/date" },
+  connection_accepted: { Icon: Sparkles, label: "matched with you", href: "/app/date" },
 };
 
 function NotificationsPage() {
