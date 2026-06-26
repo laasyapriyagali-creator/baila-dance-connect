@@ -129,7 +129,7 @@ function ProfilePage() {
     }
     const { error } = await supabase
       .from("profiles")
-      .update({ [field]: path })
+      .update({ [field]: path } as Record<string, string>)
       .eq("id", user.id);
     if (error) toast.error(error.message);
     else qc.invalidateQueries({ queryKey: ["profile", user.id] });
