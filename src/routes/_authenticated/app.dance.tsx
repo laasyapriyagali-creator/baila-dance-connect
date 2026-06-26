@@ -114,17 +114,23 @@ function DanceFeed() {
     return () => io.disconnect();
   }, [feed?.length]);
 
-  // Pause non-active videos to save battery and bandwidth.
+  // Pause non-active videos; preload neighbors. Prewarm signed URLs for upcoming.
   useEffect(() => {
     videoRefs.current.forEach((v, idx) => {
       if (!v) return;
       if (idx === activeIdx) {
-        v.play().catch(() => undefined);
+        const p = v.play();
+        if (p && typeof p.catch === "function") p.catch(() => undefined);
       } else {
         v.pause();
       }
     });
-  }, [activeIdx]);
+    const upcoming = (feed ?? []).slice(activeIdx, activeIdx + 4);
+    if (upcoming.length) {
+      prewarm("dance-videos", upcoming.map((f) => f.mainVideo.storage_path));
+      prewarm("dance-videos", upcoming.map((f) => f.mainVideo.poster_url));
+    }
+  }, [activeIdx, feed]);
 
   const decide = async (kind: "next" | "match", item: FeedItem) => {
     if (!user) return;
