@@ -188,9 +188,9 @@ export function UploadVideoDialog({
           multiple
           className="hidden"
           onChange={(e) => {
-            const fs = e.target.files;
+            const fs = Array.from(e.target.files ?? []);
             e.target.value = "";
-            if (fs) addFiles(fs);
+            if (fs.length > 0) addFiles(fs);
           }}
         />
 
