@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { Check, X, Star, MapPin } from "lucide-react";
+import { Check, X, Star, MapPin, Play } from "lucide-react";
 import { useBaila, type Connection } from "@/store/baila";
 
 export const Route = createFileRoute("/app/connections")({
@@ -68,11 +68,18 @@ function ConnectionsPage() {
               key={c.id}
               className="flex items-center gap-3 rounded-2xl border border-baila-ink/10 bg-white p-3"
             >
-              <img
-                src={c.dancer.poster}
-                alt=""
-                className="h-16 w-16 flex-shrink-0 rounded-xl object-cover"
-              />
+              <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-xl bg-baila-ink">
+                <img
+                  src={c.dancer.poster}
+                  alt={`${c.dancer.name} dance video`}
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
+                <span className="absolute inset-0 flex items-center justify-center">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/25 text-white backdrop-blur">
+                    <Play className="h-3 w-3" fill="currentColor" />
+                  </span>
+                </span>
+              </div>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2">
                   <p className="truncate font-display text-lg font-semibold text-baila-ink">

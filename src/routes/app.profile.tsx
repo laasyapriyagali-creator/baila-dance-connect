@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import {
-  ChevronRight,
   MoreVertical,
   Play,
   Plus,
@@ -10,9 +9,12 @@ import {
   Trash2,
   ArrowUp,
   ArrowDown,
+  MapPin,
+  Sparkles,
+  Link as LinkIcon,
+  Pencil,
 } from "lucide-react";
 import { useBaila } from "@/store/baila";
-import { DANCE_STYLES } from "@/data/dancers";
 import { UploadVideoDialog } from "@/components/baila/UploadVideoDialog";
 import {
   DropdownMenu,
@@ -26,72 +28,117 @@ export const Route = createFileRoute("/app/profile")({
   head: () => ({
     meta: [
       { title: "Profile — Baila" },
-      { name: "description", content: "Your dance videos and styles." },
+      { name: "description", content: "Your identity and dance reel." },
     ],
   }),
   component: ProfilePage,
 });
 
 function ProfilePage() {
-  const { videos, removeVideo, setMainVideo, moveVideo, styles, toggleStyle } = useBaila();
+  const { profile, styles, videos, removeVideo, setMainVideo, moveVideo } = useBaila();
   const [uploadOpen, setUploadOpen] = useState(false);
 
   return (
-    <div className="pb-6">
-      {/* Compact header */}
-      <header className="flex items-center justify-between px-5 pt-6">
-        <div className="flex items-center gap-3">
-          <img
-            src="https://images.unsplash.com/photo-1531123897727-8f129e1688ce?auto=format&fit=crop&w=200&q=80"
-            alt="You"
-            className="h-12 w-12 rounded-full object-cover ring-2 ring-baila-yellow"
-          />
-          <div>
-            <p className="font-display text-lg font-semibold leading-tight">Alex</p>
-            <p className="text-xs text-baila-ink/60">26 · Madrid</p>
-          </div>
-        </div>
-        <button
+    <div className="pb-8">
+      {/* Cover */}
+      <div className="relative h-44 w-full overflow-hidden">
+        <img src={profile.cover} alt="" className="absolute inset-0 h-full w-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-baila-cream" />
+        <Link
+          to="/app/settings"
           aria-label="Settings"
-          className="flex h-10 w-10 items-center justify-center rounded-full bg-baila-ink/5"
+          className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-baila-ink shadow-sm backdrop-blur"
         >
-          <Settings className="h-5 w-5 text-baila-ink" />
-        </button>
-      </header>
+          <Settings className="h-5 w-5" />
+        </Link>
+      </div>
 
-      {/* HERO: My Dance Videos */}
-      <section className="mx-4 mt-5 rounded-[2rem] bg-baila-yellow p-5">
+      {/* Identity */}
+      <section className="-mt-12 px-5">
         <div className="flex items-end justify-between">
-          <div>
-            <h2 className="font-display text-3xl font-semibold leading-none text-baila-ink">
-              My Dance Videos
-            </h2>
-            <p className="mt-1.5 text-sm text-baila-ink/70">
-              The way you move is your profile.
-            </p>
-          </div>
-          <span className="text-xs font-bold text-baila-ink/60">{videos.length}/5</span>
+          <img
+            src={profile.avatar}
+            alt={profile.name}
+            className="h-24 w-24 rounded-full object-cover ring-4 ring-baila-cream"
+          />
+          <button className="mb-1 flex items-center gap-1.5 rounded-full border border-baila-ink/15 bg-white px-4 py-2 text-sm font-semibold text-baila-ink shadow-sm">
+            <Pencil className="h-4 w-4" />
+            Edit Profile
+          </button>
         </div>
 
-        <button
-          onClick={() => setUploadOpen(true)}
-          disabled={videos.length >= 5}
-          className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl bg-baila-ink py-4 text-baila-cream shadow-lg transition active:scale-[0.99] disabled:opacity-50"
-        >
-          <Plus className="h-5 w-5" />
-          <span className="font-semibold">Upload Dance Video</span>
-        </button>
+        <h1 className="mt-3 font-display text-2xl font-semibold leading-tight text-baila-ink">
+          {profile.name}
+        </h1>
+        <p className="text-sm text-baila-ink/60">@{profile.username}</p>
+
+        <p className="mt-3 text-[15px] leading-relaxed text-baila-ink/85">{profile.bio}</p>
+
+        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-baila-ink/70">
+          <span className="flex items-center gap-1">
+            <MapPin className="h-4 w-4" /> {profile.city}
+          </span>
+          <span className="flex items-center gap-1">
+            <Sparkles className="h-4 w-4" /> {profile.experience}
+          </span>
+          {profile.socials.map((s) => (
+            <a
+              key={s.label}
+              href={s.url}
+              className="flex items-center gap-1 text-baila-ink/70 underline-offset-2 hover:underline"
+            >
+              <LinkIcon className="h-4 w-4" /> {s.label}
+            </a>
+          ))}
+        </div>
+
+        {/* Followers / videos / following */}
+        <div className="mt-5 grid grid-cols-3 divide-x divide-baila-ink/10 rounded-2xl border border-baila-ink/10 bg-white py-3 text-center">
+          <Stat value={videos.length} label="Videos" />
+          <Stat value={profile.followers} label="Followers" />
+          <Stat value={profile.following} label="Following" />
+        </div>
+
+        {/* Styles */}
+        <div className="mt-5 flex flex-wrap gap-2">
+          {styles.map((s) => (
+            <span
+              key={s}
+              className="rounded-full bg-baila-yellow px-3 py-1.5 text-xs font-bold text-baila-ink"
+            >
+              {s}
+            </span>
+          ))}
+        </div>
+      </section>
+
+      {/* Dance reel — primary content */}
+      <section className="mt-7 px-5">
+        <div className="mb-3 flex items-end justify-between">
+          <h2 className="font-display text-xl font-semibold text-baila-ink">Dance reel</h2>
+          <button
+            onClick={() => setUploadOpen(true)}
+            disabled={videos.length >= 9}
+            className="flex items-center gap-1 rounded-full bg-baila-ink px-3.5 py-2 text-xs font-semibold text-baila-cream disabled:opacity-50"
+          >
+            <Plus className="h-4 w-4" /> Upload
+          </button>
+        </div>
 
         {videos.length === 0 ? (
-          <p className="mt-5 rounded-2xl bg-baila-cream/60 p-6 text-center text-sm text-baila-ink/70">
-            Upload your first clip to go live in the dance feed.
-          </p>
+          <button
+            onClick={() => setUploadOpen(true)}
+            className="flex w-full flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-baila-ink/20 bg-baila-yellow-soft p-10 text-baila-ink"
+          >
+            <Plus className="h-6 w-6" />
+            <span className="text-sm font-semibold">Upload your first dance video</span>
+          </button>
         ) : (
-          <ul className="mt-5 grid grid-cols-2 gap-3">
+          <ul className="grid grid-cols-3 gap-1.5">
             {videos.map((v) => (
               <li
                 key={v.id}
-                className="group relative overflow-hidden rounded-2xl bg-baila-ink"
+                className="group relative overflow-hidden rounded-lg bg-baila-ink"
                 style={{ aspectRatio: "3 / 4" }}
               >
                 <img
@@ -99,34 +146,28 @@ function ProfilePage() {
                   alt={v.title}
                   className="absolute inset-0 h-full w-full object-cover"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-black/10" />
-                <div className="absolute left-2 top-2 flex items-center gap-1">
-                  {v.isMain && (
-                    <span className="flex items-center gap-1 rounded-full bg-baila-yellow px-2 py-0.5 text-[10px] font-bold text-baila-ink">
-                      <Star className="h-3 w-3" fill="currentColor" /> Main
-                    </span>
-                  )}
-                </div>
-                <span className="absolute right-2 top-2 rounded-full bg-black/50 px-2 py-0.5 text-[10px] font-semibold text-white">
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                {v.isMain && (
+                  <span className="absolute left-1.5 top-1.5 flex items-center gap-0.5 rounded-full bg-baila-yellow px-1.5 py-0.5 text-[9px] font-bold text-baila-ink">
+                    <Star className="h-2.5 w-2.5" fill="currentColor" /> Main
+                  </span>
+                )}
+                <span className="absolute right-1.5 top-1.5 rounded-full bg-black/55 px-1.5 py-0.5 text-[9px] font-semibold text-white">
                   {v.duration}
                 </span>
-                <button
-                  aria-label="Preview"
-                  className="absolute inset-0 flex items-center justify-center text-white/90"
-                >
-                  <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white/20 backdrop-blur">
-                    <Play className="h-5 w-5" fill="currentColor" />
+                <span className="absolute inset-0 flex items-center justify-center">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/25 text-white backdrop-blur">
+                    <Play className="h-4 w-4" fill="currentColor" />
                   </span>
-                </button>
-                <div className="absolute bottom-2 left-2 right-2 flex items-end justify-between">
-                  <p className="truncate text-xs font-semibold text-white">{v.title}</p>
+                </span>
+                <div className="absolute bottom-1 right-1">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <button
                         aria-label="Video menu"
-                        className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur"
+                        className="flex h-7 w-7 items-center justify-center rounded-full bg-black/45 text-white backdrop-blur"
                       >
-                        <MoreVertical className="h-4 w-4" />
+                        <MoreVertical className="h-3.5 w-3.5" />
                       </button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="rounded-2xl">
@@ -157,72 +198,16 @@ function ProfilePage() {
         )}
       </section>
 
-      {/* Dance styles */}
-      <section className="mt-6 px-5">
-        <h3 className="font-display text-xl font-semibold text-baila-ink">Dance styles</h3>
-        <div className="mt-3 flex flex-wrap gap-2">
-          {DANCE_STYLES.map((s) => {
-            const active = styles.includes(s);
-            return (
-              <button
-                key={s}
-                onClick={() => toggleStyle(s)}
-                className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
-                  active
-                    ? "border-baila-ink bg-baila-ink text-baila-cream"
-                    : "border-baila-ink/15 bg-white text-baila-ink/70"
-                }`}
-              >
-                {s}
-              </button>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* Basic info */}
-      <section className="mt-6 px-5">
-        <h3 className="font-display text-xl font-semibold text-baila-ink">About</h3>
-        <dl className="mt-3 divide-y divide-baila-ink/10 rounded-2xl border border-baila-ink/10 bg-white">
-          {[
-            ["Age", "26"],
-            ["City", "Madrid"],
-            ["Gender", "Non-binary"],
-            ["Interested in", "Open to all"],
-          ].map(([k, v]) => (
-            <div key={k} className="flex items-center justify-between px-4 py-3">
-              <dt className="text-sm text-baila-ink/60">{k}</dt>
-              <dd className="text-sm font-semibold text-baila-ink">{v}</dd>
-            </div>
-          ))}
-        </dl>
-      </section>
-
-      {/* Settings */}
-      <section className="mt-6 px-5">
-        <h3 className="font-display text-xl font-semibold text-baila-ink">Settings</h3>
-        <ul className="mt-3 divide-y divide-baila-ink/10 rounded-2xl border border-baila-ink/10 bg-white">
-          {["Account", "Notifications", "Privacy", "Help"].map((label) => (
-            <li key={label}>
-              <button className="flex w-full items-center justify-between px-4 py-3.5 text-left">
-                <span className="text-sm font-medium text-baila-ink">{label}</span>
-                <ChevronRight className="h-4 w-4 text-baila-ink/40" />
-              </button>
-            </li>
-          ))}
-          <li>
-            <Link
-              to="/"
-              className="flex w-full items-center justify-between px-4 py-3.5 text-left text-sm font-medium text-destructive"
-            >
-              Sign out
-              <ChevronRight className="h-4 w-4 opacity-50" />
-            </Link>
-          </li>
-        </ul>
-      </section>
-
       <UploadVideoDialog open={uploadOpen} onOpenChange={setUploadOpen} />
+    </div>
+  );
+}
+
+function Stat({ value, label }: { value: number; label: string }) {
+  return (
+    <div>
+      <p className="font-display text-lg font-semibold text-baila-ink">{value}</p>
+      <p className="text-[11px] uppercase tracking-wider text-baila-ink/55">{label}</p>
     </div>
   );
 }

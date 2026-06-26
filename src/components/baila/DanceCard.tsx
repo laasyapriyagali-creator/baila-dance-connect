@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { MapPin } from "lucide-react";
+import { MapPin, Play } from "lucide-react";
 import type { Dancer } from "@/data/dancers";
 
 export function DanceCard({ dancer }: { dancer: Dancer }) {
@@ -24,6 +24,10 @@ export function DanceCard({ dancer }: { dancer: Dancer }) {
         animate={{ opacity: [0.4, 0.7, 0.4] }}
         transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
       />
+      {/* video affordance */}
+      <span className="absolute left-4 top-4 flex items-center gap-1.5 rounded-full bg-black/45 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur">
+        <Play className="h-3 w-3" fill="currentColor" /> Dance video
+      </span>
       <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent p-5 pt-24">
         <div className="flex items-end justify-between">
           <div className="text-white">
