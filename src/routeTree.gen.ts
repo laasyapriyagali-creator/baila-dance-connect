@@ -13,6 +13,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
+import { Route as AuthenticatedAppProfileRouteImport } from './routes/_authenticated/app.profile'
 import { Route as AuthenticatedAppDanceRouteImport } from './routes/_authenticated/app.dance'
 import { Route as AuthenticatedAppConnectionsRouteImport } from './routes/_authenticated/app.connections'
 
@@ -35,6 +36,11 @@ const AuthenticatedAppRoute = AuthenticatedAppRouteImport.update({
   path: '/app',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAppProfileRoute = AuthenticatedAppProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
 const AuthenticatedAppDanceRoute = AuthenticatedAppDanceRouteImport.update({
   id: '/dance',
   path: '/dance',
@@ -53,6 +59,7 @@ export interface FileRoutesByFullPath {
   '/app': typeof AuthenticatedAppRouteWithChildren
   '/app/connections': typeof AuthenticatedAppConnectionsRoute
   '/app/dance': typeof AuthenticatedAppDanceRoute
+  '/app/profile': typeof AuthenticatedAppProfileRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -60,6 +67,7 @@ export interface FileRoutesByTo {
   '/app': typeof AuthenticatedAppRouteWithChildren
   '/app/connections': typeof AuthenticatedAppConnectionsRoute
   '/app/dance': typeof AuthenticatedAppDanceRoute
+  '/app/profile': typeof AuthenticatedAppProfileRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -69,12 +77,25 @@ export interface FileRoutesById {
   '/_authenticated/app': typeof AuthenticatedAppRouteWithChildren
   '/_authenticated/app/connections': typeof AuthenticatedAppConnectionsRoute
   '/_authenticated/app/dance': typeof AuthenticatedAppDanceRoute
+  '/_authenticated/app/profile': typeof AuthenticatedAppProfileRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/app' | '/app/connections' | '/app/dance'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/app'
+    | '/app/connections'
+    | '/app/dance'
+    | '/app/profile'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/app' | '/app/connections' | '/app/dance'
+  to:
+    | '/'
+    | '/auth'
+    | '/app'
+    | '/app/connections'
+    | '/app/dance'
+    | '/app/profile'
   id:
     | '__root__'
     | '/'
@@ -83,6 +104,7 @@ export interface FileRouteTypes {
     | '/_authenticated/app'
     | '/_authenticated/app/connections'
     | '/_authenticated/app/dance'
+    | '/_authenticated/app/profile'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -121,6 +143,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/app/profile': {
+      id: '/_authenticated/app/profile'
+      path: '/profile'
+      fullPath: '/app/profile'
+      preLoaderRoute: typeof AuthenticatedAppProfileRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
     '/_authenticated/app/dance': {
       id: '/_authenticated/app/dance'
       path: '/dance'
@@ -141,11 +170,13 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedAppRouteChildren {
   AuthenticatedAppConnectionsRoute: typeof AuthenticatedAppConnectionsRoute
   AuthenticatedAppDanceRoute: typeof AuthenticatedAppDanceRoute
+  AuthenticatedAppProfileRoute: typeof AuthenticatedAppProfileRoute
 }
 
 const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppConnectionsRoute: AuthenticatedAppConnectionsRoute,
   AuthenticatedAppDanceRoute: AuthenticatedAppDanceRoute,
+  AuthenticatedAppProfileRoute: AuthenticatedAppProfileRoute,
 }
 
 const AuthenticatedAppRouteWithChildren =
