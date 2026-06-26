@@ -1,102 +1,110 @@
-ns# Baila — MVP Plan
+# Baila — Platform Overhaul (Scope 4 / 5)
 
-A mobile-first dance-discovery app with a bold yellow & black identity. This first pass builds the full UI shell with realistic mock data so you can feel the entire flow. Auth, video uploads, and matching persistence can be wired to Lovable Cloud in a follow-up once the look and feel is locked.
+Touches all four priority areas while preserving the yellow/black design language. No messaging is introduced — the IRL-first philosophy stays.
 
-## Scope of this pass
+## 1. Roles & data model
 
-In:
-- Brand system (yellow primary, black contrast, playful modern type)
-- Onboarding / welcome screen (redesigned per your spec)
-- Dance feed (full-screen vertical video, Next / Dance With Me, confirm popup)
-- Connections (pending, active, past, Dance Again)
-- Profile (large "My Dance Videos" section, photo, styles, basic info, settings)
-- Logo asset wired in from your upload
-- Mock dancer + connection data so every screen is alive
+Add three roles: `dancer` (default), `instructor`, `organizer`.
 
-Deferred to a follow-up turn (will require Lovable Cloud):
-- Real signup (Google / Apple / Email), profile creation flow
-- Real video upload + storage, main-video selection persistence
-- Real request / accept / decline / Dance Again persistence
+Schema changes (single migration):
+- `profiles.role` enum `('dancer','instructor','organizer')`, default `'dancer'`.
+- `profiles.headline` text (one-liner under name).
+- `profiles.availability` text[] (e.g. weeknights, weekends).
+- `profiles.years_dancing` int.
+- New table `public.events` (organizer-owned: title, style, city, venue, starts_at, cover_path, description). Read-all-authenticated; write-own + role check via `has_role`.
+- New table `public.classes` (instructor-owned: title, style, level, city, recurrence, cover_path). Same policy shape.
+- New table `public.notifications` (user_id, kind, payload jsonb, read_at). RLS: owner only.
+- `connection_requests`: add `seen_at` for "new request" badge.
+- GRANTs + RLS for every new table; security-definer `has_role(uuid, app_role)` helper.
 
-## Brand & design system
+## 2. Onboarding wizard
 
-- Primary: bright Baila yellow (`#FFD60A`-ish in oklch), background mostly yellow or warm off-white — never dark-mode-heavy
-- Contrast: near-black for text, surfaces, icons
-- Accents: orange for "Next", green for "Dance With Me"
-- Type: friendly modern pair (display: Syne or Sora; body: DM Sans / Manrope) — not all-caps, human feel
-- Rounded-2xl buttons, generous whitespace, large tap targets, subtle motion
-- Tokens defined in `src/styles.css` under `@theme inline` + `:root` (oklch). No hardcoded colors in components.
+New route `/_authenticated/onboarding` gated by `profiles.onboarded = false`. 4 steps:
+1. Pick role (dancer / instructor / organizer) with iconography.
+2. Display name + username + city.
+3. Dance styles (multi-select chips) + experience level + years.
+4. Upload first dance video OR skip (dancers prompted, instructors/organizers optional).
 
-## Screen-by-screen
+App shell redirects to onboarding when incomplete.
 
-### 1. Onboarding `/`
-- Centered logo (from uploaded asset) on yellow background
-- Wordmark "Baila" in elegant display type, not all caps
-- Tagline: "Dance to connect"
-- Large rounded black (or deep ink) CTA: "Find Your Rhythm"
-- Small secondary line: "Discover people through dance."
-- Minimal, no feature bullets, no marketing blocks
+## 3. Discovery feed upgrades
 
-### 2. App shell `/app`
-- Layout route with sticky bottom tab bar (3 tabs only): Dance, Connections, Profile
-- Tab bar uses yellow surface with black active indicator; custom icons (lucide: Music2 / Sparkles / User)
+`app.dance.tsx`:
+- Snap-scroll vertical feed with `<video>` IntersectionObserver autoplay (muted, playsInline), pause when off-screen.
+- Preload next 2 signed URLs.
+- Tap to mute/unmute; double-tap = Dance With Me; swipe left = Next.
+- Recommendation ordering: prefer overlapping dance styles + same city, then recency, exclude self + already-actioned.
+- Filter sheet: style, city, role.
+- Skeleton + refined empty state with CTA to upload.
+- Surface instructor/organizer badge + linked class/event chip on their cards.
 
-### 3. Dance `/app/dance`
-- Full-screen vertical video card (mock video poster + looping clip)
-- Overlaid info: name, age, city, dance style chip
-- Bottom action row: round orange "Next" (skip) + round green "Dance With Me"
-- Tap / swipe (simple swipe handler) advances to next dancer
-- Tapping "Dance With Me" opens confirm dialog: "Would you like to dance with this person?" Yes / No
-- Toast confirmation on Yes; advances feed
+## 4. Upload flow
 
-### 4. Connections `/app/connections`
-- Segmented tabs: Pending · Active · Past
-- Pending: incoming requests with Accept / Decline
-- Active: connected dancers with "View profile" and "⭐ Dance Again"
-- Past: inactive connections, option to mark Dance Again
-- Empty states with playful copy
+`UploadVideoDialog.tsx`:
+- Drag-drop zone, file validation (type, ≤100MB, ≤90s via metadata probe).
+- Auto-generate poster from first frame via canvas; upload poster alongside video.
+- Real progress (resumable `uploadToSignedUrl` with chunked fallback), retry on failure.
+- Optional caption, style tag, set-as-main toggle.
+- Queue multiple files; per-item status.
 
-### 5. Profile `/app/profile`
-- Compact header: profile photo + name + city (small)
-- HERO section "My Dance Videos" (largest block on screen):
-  - Prominent "Upload Dance Video" button (mock — opens dialog, simulated progress bar, adds to grid)
-  - 2-col card grid of videos with duration badge, "Main" star, kebab menu (Set as main / Replace / Delete / Preview)
-  - Reorder via simple up/down buttons in menu (drag-and-drop deferred)
-- Dance styles chips (Freestyle, Hip-hop, K-pop, Salsa, Classical, Other) — toggleable
-- Basic info: age, gender, interested in (Dance Partner / Friends / Dates / Open to all)
-- Settings list at bottom (Account, Notifications, Privacy, Sign out — stubs)
+## 5. Connections (no chat)
 
-## Mock data & state
+`app.connections.tsx`:
+- Three tabs: Requests / Dancing / Past.
+- "Meet IRL" card replaces messaging: shows mutual styles, shared city, suggested local venues (static curated list per city for now), and an "Ice-breaker move" prompt (random from a curated list) — keeps philosophy intact.
+- "Plan a dance" action drops a calendar `.ics` download with a placeholder time the user edits.
+- Unseen-request badge on the bottom tab via `connection_requests.seen_at`.
 
-- `src/data/dancers.ts` — 8 mock dancers (name, age, city, style, poster img, video url placeholder)
-- `src/data/connections.ts` — sample pending/active/past
-- Local React state + `zustand` (lightweight) for: current dance index, sent requests, connections, profile videos & main video selection
-- All persistence in-memory for now; structure makes it easy to swap to Cloud
+## 6. Notifications
 
-## File plan
+Lightweight bell in top bar:
+- DB triggers insert notifications on: new request, mutual match, new class/event from instructors/organizers you've connected with.
+- Realtime subscription on `notifications` for live badge.
+- Notification list route `/_authenticated/app/notifications`.
 
-- `src/styles.css` — replace tokens with Baila palette + register fonts via `<link>` in `__root.tsx`
-- `src/routes/__root.tsx` — add font `<link>` tags, update meta (title "Baila — Dance to connect")
-- `src/routes/index.tsx` — onboarding screen
-- `src/routes/app.tsx` — layout route with bottom tab bar + `<Outlet />`
-- `src/routes/app.dance.tsx`
-- `src/routes/app.connections.tsx`
-- `src/routes/app.profile.tsx`
-- `src/components/baila/` — `BottomTabs`, `DanceCard`, `ActionButtons`, `ConfirmDanceDialog`, `ConnectionRow`, `VideoCard`, `UploadVideoDialog`, `StyleChips`, `Logo`
-- `src/data/dancers.ts`, `src/data/connections.ts`
-- `src/store/baila.ts` — zustand store
-- `src/assets/baila-logo.png.asset.json` — Lovable Asset pointer for uploaded logo
+## 7. Profile
+
+`app.profile.tsx`:
+- Role badge + headline + years dancing.
+- Instructor view: "Classes" section. Organizer view: "Events" section. Both editable inline.
+- Dancer view unchanged structurally, with availability chips added.
+- Public read of others' profiles via `/_authenticated/app/u/$username`.
+
+## 8. Search
+
+New `/_authenticated/app/search` with tabs: Dancers / Classes / Events.
+- Server-side `ilike` on display_name, username, styles, city.
+- Empty state and recent-searches stored in localStorage.
+
+## 9. Accessibility
+
+- All icon-only buttons get `aria-label`.
+- Replace `h-screen` with `h-dvh` in feed.
+- Focus-visible rings on all interactive elements via Tailwind utility.
+- Live-region (`role="status"`) for upload progress and toast equivalents.
+- Verify color contrast on yellow-on-black CTAs (already AA, audit secondary text).
+- Single `<main>` per route, proper heading order.
+
+## 10. Performance
+
+- Signed-URL cache TTL bump + LRU eviction in `src/lib/storage.ts`.
+- `defaultPreloadStaleTime: 0` confirmed; route loaders prime via `ensureQueryData`.
+- Lazy-load EditProfile / Upload dialogs with `React.lazy`.
+- `<img>` wrappers use `aspect-*`; posters use `loading="lazy"` except first feed item.
+- Memoize feed cards; virtualize connections list when > 30 rows.
 
 ## Technical notes
 
-- TanStack Start file-based routes; flat dot naming (`app.dance.tsx` etc.)
-- Each route sets its own `head()` with unique title/description
-- Bottom tabs use `<Link>` from `@tanstack/react-router` with `activeProps`
-- Videos use `<video muted playsInline loop autoPlay>` with poster; mock urls (sample short MP4s from a public CDN or just animated posters if videos fail)
-- Confirm dialog uses existing shadcn `AlertDialog`
-- Use `framer-motion` for tab transitions and the swipe gesture on the dance card (already common; install if missing)
+- Roles enforced via `public.has_role(_user_id uuid, _role app_role)` security-definer + RLS using it on `events`/`classes` writes.
+- Notifications created by DB triggers on `connection_requests`, `classes`, `events` — no client-side fanout.
+- Recommendation ranking runs as a `createServerFn` with `requireSupabaseAuth` returning a ranked array of `dance_videos` ids; client hydrates via existing query path.
+- Onboarding redirect lives in `_authenticated/route.tsx` post-`getUser` check (one extra profile fetch, cached).
+- All new tables ship with GRANTs + RLS + `service_role` ALL in the same migration.
+- No new dependencies expected beyond what's already installed; if calendar export needs a helper, hand-roll the .ics string (no library).
 
-## Open questions
+## Out of scope (explicit)
 
-1. OK to ship this UI-first pass with mock data, then enable Lovable Cloud next turn for real auth + uploads?
-2. Should the bottom tab labels read "Connections" or your earlier "Dates"? Spec uses both — I'll go with "Connections" to match the detailed flow unless you say otherwise.
+- Any form of pre-match messaging or chat.
+- Likes, comments, follower counts, stories.
+- Push notifications (in-app bell only this pass).
+- Payments / ticketing for events and classes.

@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      classes: {
+        Row: {
+          city: string | null
+          cover_path: string | null
+          created_at: string
+          description: string | null
+          id: string
+          instructor_id: string
+          level: string
+          recurrence: string | null
+          style: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          city?: string | null
+          cover_path?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          instructor_id: string
+          level?: string
+          recurrence?: string | null
+          style: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          city?: string | null
+          cover_path?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          instructor_id?: string
+          level?: string
+          recurrence?: string | null
+          style?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       connection_requests: {
         Row: {
           again_from: boolean
@@ -21,6 +63,7 @@ export type Database = {
           created_at: string
           from_user: string
           id: string
+          seen_at: string | null
           status: Database["public"]["Enums"]["connection_status"]
           to_user: string
           updated_at: string
@@ -31,6 +74,7 @@ export type Database = {
           created_at?: string
           from_user: string
           id?: string
+          seen_at?: string | null
           status?: Database["public"]["Enums"]["connection_status"]
           to_user: string
           updated_at?: string
@@ -41,6 +85,7 @@ export type Database = {
           created_at?: string
           from_user?: string
           id?: string
+          seen_at?: string | null
           status?: Database["public"]["Enums"]["connection_status"]
           to_user?: string
           updated_at?: string
@@ -83,8 +128,78 @@ export type Database = {
         }
         Relationships: []
       }
+      events: {
+        Row: {
+          city: string | null
+          cover_path: string | null
+          created_at: string
+          description: string | null
+          id: string
+          organizer_id: string
+          starts_at: string
+          style: string | null
+          title: string
+          updated_at: string
+          venue: string | null
+        }
+        Insert: {
+          city?: string | null
+          cover_path?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          organizer_id: string
+          starts_at: string
+          style?: string | null
+          title: string
+          updated_at?: string
+          venue?: string | null
+        }
+        Update: {
+          city?: string | null
+          cover_path?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          organizer_id?: string
+          starts_at?: string
+          style?: string | null
+          title?: string
+          updated_at?: string
+          venue?: string | null
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          kind: string
+          payload: Json
+          read_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          kind: string
+          payload?: Json
+          read_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          kind?: string
+          payload?: Json
+          read_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
+          availability: string[]
           avatar_url: string | null
           bio: string | null
           city: string | null
@@ -93,13 +208,17 @@ export type Database = {
           dance_styles: string[]
           display_name: string | null
           experience: string | null
+          headline: string | null
           id: string
           onboarded: boolean
+          role: Database["public"]["Enums"]["app_role"]
           socials: Json
           updated_at: string
           username: string | null
+          years_dancing: number | null
         }
         Insert: {
+          availability?: string[]
           avatar_url?: string | null
           bio?: string | null
           city?: string | null
@@ -108,13 +227,17 @@ export type Database = {
           dance_styles?: string[]
           display_name?: string | null
           experience?: string | null
+          headline?: string | null
           id: string
           onboarded?: boolean
+          role?: Database["public"]["Enums"]["app_role"]
           socials?: Json
           updated_at?: string
           username?: string | null
+          years_dancing?: number | null
         }
         Update: {
+          availability?: string[]
           avatar_url?: string | null
           bio?: string | null
           city?: string | null
@@ -123,11 +246,14 @@ export type Database = {
           dance_styles?: string[]
           display_name?: string | null
           experience?: string | null
+          headline?: string | null
           id?: string
           onboarded?: boolean
+          role?: Database["public"]["Enums"]["app_role"]
           socials?: Json
           updated_at?: string
           username?: string | null
+          years_dancing?: number | null
         }
         Relationships: []
       }
@@ -136,9 +262,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
+      app_role: "dancer" | "instructor" | "organizer"
       connection_status: "pending" | "accepted" | "declined"
     }
     CompositeTypes: {
@@ -267,6 +400,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["dancer", "instructor", "organizer"],
       connection_status: ["pending", "accepted", "declined"],
     },
   },
