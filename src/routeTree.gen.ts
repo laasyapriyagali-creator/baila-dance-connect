@@ -9,16 +9,20 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as AppRouteImport } from './routes/app'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AppSettingsRouteImport } from './routes/app.settings'
-import { Route as AppProfileRouteImport } from './routes/app.profile'
-import { Route as AppDanceRouteImport } from './routes/app.dance'
-import { Route as AppConnectionsRouteImport } from './routes/app.connections'
+import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
+import { Route as AuthenticatedAppDanceRouteImport } from './routes/_authenticated/app.dance'
+import { Route as AuthenticatedAppConnectionsRouteImport } from './routes/_authenticated/app.connections'
 
-const AppRoute = AppRouteImport.update({
-  id: '/app',
-  path: '/app',
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -26,91 +30,81 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AppSettingsRoute = AppSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => AppRoute,
+const AuthenticatedAppRoute = AuthenticatedAppRouteImport.update({
+  id: '/app',
+  path: '/app',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AppProfileRoute = AppProfileRouteImport.update({
-  id: '/profile',
-  path: '/profile',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppDanceRoute = AppDanceRouteImport.update({
+const AuthenticatedAppDanceRoute = AuthenticatedAppDanceRouteImport.update({
   id: '/dance',
   path: '/dance',
-  getParentRoute: () => AppRoute,
+  getParentRoute: () => AuthenticatedAppRoute,
 } as any)
-const AppConnectionsRoute = AppConnectionsRouteImport.update({
-  id: '/connections',
-  path: '/connections',
-  getParentRoute: () => AppRoute,
-} as any)
+const AuthenticatedAppConnectionsRoute =
+  AuthenticatedAppConnectionsRouteImport.update({
+    id: '/connections',
+    path: '/connections',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/app': typeof AppRouteWithChildren
-  '/app/connections': typeof AppConnectionsRoute
-  '/app/dance': typeof AppDanceRoute
-  '/app/profile': typeof AppProfileRoute
-  '/app/settings': typeof AppSettingsRoute
+  '/auth': typeof AuthRoute
+  '/app': typeof AuthenticatedAppRouteWithChildren
+  '/app/connections': typeof AuthenticatedAppConnectionsRoute
+  '/app/dance': typeof AuthenticatedAppDanceRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/app': typeof AppRouteWithChildren
-  '/app/connections': typeof AppConnectionsRoute
-  '/app/dance': typeof AppDanceRoute
-  '/app/profile': typeof AppProfileRoute
-  '/app/settings': typeof AppSettingsRoute
+  '/auth': typeof AuthRoute
+  '/app': typeof AuthenticatedAppRouteWithChildren
+  '/app/connections': typeof AuthenticatedAppConnectionsRoute
+  '/app/dance': typeof AuthenticatedAppDanceRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/app': typeof AppRouteWithChildren
-  '/app/connections': typeof AppConnectionsRoute
-  '/app/dance': typeof AppDanceRoute
-  '/app/profile': typeof AppProfileRoute
-  '/app/settings': typeof AppSettingsRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/_authenticated/app': typeof AuthenticatedAppRouteWithChildren
+  '/_authenticated/app/connections': typeof AuthenticatedAppConnectionsRoute
+  '/_authenticated/app/dance': typeof AuthenticatedAppDanceRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    | '/'
-    | '/app'
-    | '/app/connections'
-    | '/app/dance'
-    | '/app/profile'
-    | '/app/settings'
+  fullPaths: '/' | '/auth' | '/app' | '/app/connections' | '/app/dance'
   fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/'
-    | '/app'
-    | '/app/connections'
-    | '/app/dance'
-    | '/app/profile'
-    | '/app/settings'
+  to: '/' | '/auth' | '/app' | '/app/connections' | '/app/dance'
   id:
     | '__root__'
     | '/'
-    | '/app'
-    | '/app/connections'
-    | '/app/dance'
-    | '/app/profile'
-    | '/app/settings'
+    | '/_authenticated'
+    | '/auth'
+    | '/_authenticated/app'
+    | '/_authenticated/app/connections'
+    | '/_authenticated/app/dance'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AppRoute: typeof AppRouteWithChildren
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/app': {
-      id: '/app'
-      path: '/app'
-      fullPath: '/app'
-      preLoaderRoute: typeof AppRouteImport
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -120,56 +114,58 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/app/settings': {
-      id: '/app/settings'
-      path: '/settings'
-      fullPath: '/app/settings'
-      preLoaderRoute: typeof AppSettingsRouteImport
-      parentRoute: typeof AppRoute
+    '/_authenticated/app': {
+      id: '/_authenticated/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AuthenticatedAppRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/app/profile': {
-      id: '/app/profile'
-      path: '/profile'
-      fullPath: '/app/profile'
-      preLoaderRoute: typeof AppProfileRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/dance': {
-      id: '/app/dance'
+    '/_authenticated/app/dance': {
+      id: '/_authenticated/app/dance'
       path: '/dance'
       fullPath: '/app/dance'
-      preLoaderRoute: typeof AppDanceRouteImport
-      parentRoute: typeof AppRoute
+      preLoaderRoute: typeof AuthenticatedAppDanceRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
     }
-    '/app/connections': {
-      id: '/app/connections'
+    '/_authenticated/app/connections': {
+      id: '/_authenticated/app/connections'
       path: '/connections'
       fullPath: '/app/connections'
-      preLoaderRoute: typeof AppConnectionsRouteImport
-      parentRoute: typeof AppRoute
+      preLoaderRoute: typeof AuthenticatedAppConnectionsRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
     }
   }
 }
 
-interface AppRouteChildren {
-  AppConnectionsRoute: typeof AppConnectionsRoute
-  AppDanceRoute: typeof AppDanceRoute
-  AppProfileRoute: typeof AppProfileRoute
-  AppSettingsRoute: typeof AppSettingsRoute
+interface AuthenticatedAppRouteChildren {
+  AuthenticatedAppConnectionsRoute: typeof AuthenticatedAppConnectionsRoute
+  AuthenticatedAppDanceRoute: typeof AuthenticatedAppDanceRoute
 }
 
-const AppRouteChildren: AppRouteChildren = {
-  AppConnectionsRoute: AppConnectionsRoute,
-  AppDanceRoute: AppDanceRoute,
-  AppProfileRoute: AppProfileRoute,
-  AppSettingsRoute: AppSettingsRoute,
+const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
+  AuthenticatedAppConnectionsRoute: AuthenticatedAppConnectionsRoute,
+  AuthenticatedAppDanceRoute: AuthenticatedAppDanceRoute,
 }
 
-const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+const AuthenticatedAppRouteWithChildren =
+  AuthenticatedAppRoute._addFileChildren(AuthenticatedAppRouteChildren)
+
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAppRoute: typeof AuthenticatedAppRouteWithChildren
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAppRoute: AuthenticatedAppRouteWithChildren,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AppRoute: AppRouteWithChildren,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

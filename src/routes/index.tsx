@@ -1,6 +1,8 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 import { Logo } from "@/components/baila/Logo";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -15,12 +17,21 @@ export const Route = createFileRoute("/")({
 });
 
 function Welcome() {
+  const navigate = useNavigate();
+  const [hasSession, setHasSession] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setHasSession(!!data.session));
+  }, []);
+
+  const cta = hasSession ? "Open Baila" : "Find your rhythm";
+  const ctaTo = hasSession ? "/app/dance" : "/auth";
+
   return (
     <main
       className="relative flex min-h-[100dvh] flex-col items-center justify-between overflow-hidden px-6 py-12"
       style={{ backgroundColor: "var(--baila-yellow)" }}
     >
-      {/* subtle motion blobs */}
       <motion.div
         aria-hidden
         className="pointer-events-none absolute -left-24 top-24 h-72 w-72 rounded-full opacity-30 blur-3xl"
@@ -54,9 +65,7 @@ function Welcome() {
         <h1 className="mt-8 font-display text-6xl font-semibold tracking-tight text-baila-ink">
           Baila
         </h1>
-        <p className="mt-3 text-base font-medium text-baila-ink/70">
-          Dance to connect
-        </p>
+        <p className="mt-3 text-base font-medium text-baila-ink/70">Dance to connect</p>
       </motion.div>
 
       <motion.div
@@ -65,15 +74,20 @@ function Welcome() {
         transition={{ duration: 0.6, delay: 0.2 }}
         className="w-full max-w-sm"
       >
-        <Link
-          to="/app/dance"
+        <button
+          onClick={() => navigate({ to: ctaTo })}
           className="block w-full rounded-full bg-baila-ink px-8 py-5 text-center text-lg font-semibold text-baila-cream transition active:scale-[0.98]"
         >
-          Find Your Rhythm
-        </Link>
-        <p className="mt-4 text-center text-sm text-baila-ink/60">
-          Discover people through dance.
-        </p>
+          {cta}
+        </button>
+        {!hasSession && (
+          <p className="mt-4 text-center text-sm text-baila-ink/60">
+            Already here?{" "}
+            <Link to="/auth" className="font-semibold underline underline-offset-2">
+              Sign in
+            </Link>
+          </p>
+        )}
       </motion.div>
     </main>
   );
