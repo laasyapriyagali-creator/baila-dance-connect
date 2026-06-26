@@ -91,7 +91,12 @@ function DanceFeed() {
         if (cityOnly && me?.city && p.city !== me.city) continue;
         items.push({ profile: p, mainVideo: v });
       }
-      return items.sort((a, b) => score(b) - score(a));
+      const sorted = items.sort((a, b) => score(b) - score(a));
+      // Pre-warm first few signed URLs so the initial paint has video + poster ready.
+      const first = sorted.slice(0, 3);
+      prewarm("dance-videos", first.map((f) => f.mainVideo.storage_path));
+      prewarm("dance-videos", first.map((f) => f.mainVideo.poster_url));
+      return sorted;
     },
   });
 
