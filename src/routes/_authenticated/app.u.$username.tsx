@@ -3,7 +3,9 @@ import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, MapPin, Music2, Play, Sparkles, User as UserIcon } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { SignedImage } from "@/components/baila/SignedMedia";
+import { VideoPlayerDialog } from "@/components/baila/VideoPlayerDialog";
 import { type DanceVideo, type Profile } from "@/lib/baila-types";
+import { useState } from "react";
 
 export const Route = createFileRoute("/_authenticated/app/u/$username")({
   component: PublicProfile,
@@ -11,6 +13,7 @@ export const Route = createFileRoute("/_authenticated/app/u/$username")({
 
 function PublicProfile() {
   const { username } = useParams({ from: "/_authenticated/app/u/$username" });
+  const [playingVideo, setPlayingVideo] = useState<DanceVideo | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ["public-profile", username],
@@ -122,23 +125,40 @@ function PublicProfile() {
           <ul className="grid grid-cols-3 gap-1.5">
             {videos.map((v) => (
               <li key={v.id} className="relative overflow-hidden rounded-lg bg-baila-ink" style={{ aspectRatio: "3 / 4" }}>
-                {v.poster_url ? (
-                  <SignedImage bucket="dance-videos" path={v.poster_url} alt="Dance video" className="absolute inset-0 h-full w-full object-cover" />
-                ) : (
-                  <div className="absolute inset-0 flex items-center justify-center text-baila-cream/70">
-                    <Music2 className="h-6 w-6" />
+                <button
+                  type="button"
+                  aria-label="Play dance video"
+                  onClick={() => setPlayingVideo(v)}
+                  className="absolute inset-0 text-left"
+                >
+                  <SignedImage
+                    bucket="dance-videos"
+                    path={v.poster_url ?? v.storage_path}
+                    alt="Dance video"
+                    className="absolute inset-0 h-full w-full object-cover"
+                    fallback={
+                      <div className="absolute inset-0 flex items-center justify-center text-baila-cream/70">
+                        <Music2 className="h-6 w-6" />
+                      </div>
+                    }
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/25 text-white backdrop-blur">
+                      <Play className="h-4 w-4" fill="currentColor" />
+                    </span>
                   </div>
-                )}
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/25 text-white backdrop-blur">
-                    <Play className="h-4 w-4" fill="currentColor" />
-                  </span>
-                </div>
+                </button>
               </li>
             ))}
           </ul>
         )}
       </section>
+      <VideoPlayerDialog
+        video={playingVideo}
+        title={`${name}'s dance video`}
+        open={!!playingVideo}
+        onOpenChange={(open) => !open && setPlayingVideo(null)}
+      />
     </div>
   );
 }
