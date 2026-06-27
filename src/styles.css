@@ -63,8 +63,9 @@
   --radius: 1rem;
 
   /* Baila palette */
-  --baila-yellow: oklch(0.89 0.18 95);
-  --baila-yellow-soft: oklch(0.95 0.09 95);
+  /* Pastel blue #A7C1E1 (kept legacy token names to avoid refactor) */
+  --baila-yellow: oklch(0.79 0.06 250);
+  --baila-yellow-soft: oklch(0.93 0.025 250);
   --baila-ink: oklch(0.18 0.01 90);
   --baila-cream: oklch(0.985 0.02 95);
   --baila-orange: oklch(0.72 0.19 50);
