@@ -69,7 +69,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
-      { name: "theme-color", content: "#FFD60A" },
+      { name: "theme-color", content: "#A7C1E1" },
       { title: "Baila — Dance to connect" },
       { name: "description", content: "Discover people through dance. No bios, no chats — just movement." },
       { property: "og:title", content: "Baila — Dance to connect" },
