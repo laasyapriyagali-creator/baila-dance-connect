@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect } from "react";
-import { Bell, Sparkles, Heart } from "lucide-react";
+import { useEffect, useMemo } from "react";
+import { Bell, Sparkles, Heart, GraduationCap, CalendarDays } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/lib/auth";
@@ -13,7 +13,21 @@ export const Route = createFileRoute("/_authenticated/app/notifications")({
 const KIND_META: Record<string, { Icon: typeof Bell; label: string; href: string }> = {
   connection_request: { Icon: Heart, label: "wants to dance with you", href: "/app/date" },
   connection_accepted: { Icon: Sparkles, label: "matched with you", href: "/app/date" },
+  new_class: { Icon: GraduationCap, label: "posted a new class", href: "/app/dance" },
+  new_event: { Icon: CalendarDays, label: "posted a new event", href: "/app/dance" },
 };
+
+function actorIdFromPayload(p: Record<string, unknown> | null | undefined): string | null {
+  if (!p) return null;
+  return (
+    (p.actor_id as string) ||
+    (p.from_user as string) ||
+    (p.with_user as string) ||
+    (p.instructor_id as string) ||
+    (p.organizer_id as string) ||
+    null
+  );
+}
 
 function NotificationsPage() {
   const { user } = useSession();
@@ -30,6 +44,31 @@ function NotificationsPage() {
         .order("created_at", { ascending: false })
         .limit(100);
       return (data ?? []) as Notification[];
+    },
+  });
+
+  const actorIds = useMemo(() => {
+    const ids = new Set<string>();
+    (data ?? []).forEach((n) => {
+      const id = actorIdFromPayload(n.payload as Record<string, unknown>);
+      if (id) ids.add(id);
+    });
+    return Array.from(ids);
+  }, [data]);
+
+  const { data: profilesMap } = useQuery({
+    queryKey: ["notification-actors", actorIds.sort().join(",")],
+    enabled: actorIds.length > 0,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("id, display_name, username")
+        .in("id", actorIds);
+      const map: Record<string, { display_name: string | null; username: string | null }> = {};
+      (data ?? []).forEach((p) => {
+        map[p.id] = { display_name: p.display_name, username: p.username };
+      });
+      return map;
     },
   });
 
@@ -72,9 +111,17 @@ function NotificationsPage() {
       ) : (
         <ul className="space-y-2">
           {data.map((n) => {
-            const meta = KIND_META[n.kind] ?? { Icon: Bell, label: n.kind, href: "/app/dance" };
+            const meta = KIND_META[n.kind] ?? { Icon: Bell, label: "sent you an update", href: "/app/dance" };
             const Icon = meta.Icon;
-            const actorName = (n.payload?.actor_name as string) || "Someone";
+            const payload = (n.payload ?? {}) as Record<string, unknown>;
+            const actorId = actorIdFromPayload(payload);
+            const profile = actorId ? profilesMap?.[actorId] : undefined;
+            const actorName =
+              (payload.actor_name as string) ||
+              profile?.display_name ||
+              (profile?.username ? `@${profile.username}` : null) ||
+              "Someone";
+            const title = (payload.title as string) || null;
             return (
               <li key={n.id}>
                 <Link
@@ -90,6 +137,7 @@ function NotificationsPage() {
                     <p className="text-baila-ink">
                       <span className="font-semibold">{actorName}</span>{" "}
                       <span className="text-baila-ink/70">{meta.label}</span>
+                      {title ? <span className="text-baila-ink/70">: {title}</span> : null}
                     </p>
                     <p className="text-xs text-baila-ink/55">{new Date(n.created_at).toLocaleString()}</p>
                   </div>
