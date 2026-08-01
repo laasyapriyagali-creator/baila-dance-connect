@@ -1,12 +1,13 @@
 import { useRef, useState } from "react";
-import { Camera, Play, Plus, Trash2, Check, MapPin } from "lucide-react";
+import { Camera, Play, Plus, Trash2, Check, MapPin, Settings } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { ReelVideo } from "@/components/baila/ReelVideo";
 import { DANCE_STYLES, EXPERIENCES, bailaStore, type Experience, type Reel } from "@/lib/baila-local";
 import { useBaila } from "@/lib/use-baila";
 
 export function ProfilePanel({ onAddReel }: { onAddReel: () => void }) {
-  const { profile, reels, dates } = useBaila();
+  const { profile, reels, dates, settings } = useBaila();
   const [editing, setEditing] = useState(false);
   const [playing, setPlaying] = useState<Reel | null>(null);
   const mine = profile.name
@@ -15,7 +16,16 @@ export function ProfilePanel({ onAddReel }: { onAddReel: () => void }) {
 
   return (
     <div className="min-h-[100dvh] pb-28">
-      <div className="h-28 bg-baila-yellow" />
+      <div className="relative h-28 bg-baila-yellow">
+        <Link
+          to="/settings"
+          aria-label="Settings"
+          className="absolute right-4 flex h-10 w-10 items-center justify-center rounded-full bg-baila-ink/10 text-baila-ink backdrop-blur"
+          style={{ top: "max(env(safe-area-inset-top), 0.75rem)" }}
+        >
+          <Settings className="h-4 w-4" />
+        </Link>
+      </div>
       <div className="px-4">
         <div className="-mt-10 flex items-end gap-3">
           <Avatar />
@@ -24,11 +34,19 @@ export function ProfilePanel({ onAddReel }: { onAddReel: () => void }) {
               {profile.name || "Your name"}
             </h1>
             <p className="text-xs text-baila-ink/60">
+              {profile.age && !settings.privacy.hideAge ? `${profile.age} · ` : ""}
               {profile.experience}
               {profile.city ? ` · ${profile.city}` : ""}
             </p>
           </div>
         </div>
+
+        {settings.paused && (
+          <p className="mt-3 rounded-2xl bg-baila-ink/5 px-4 py-2.5 text-xs font-semibold text-baila-ink/70">
+            Your profile is paused — your reels are hidden from the feed.
+          </p>
+        )}
+
 
         {profile.bio && <p className="mt-3 text-sm text-baila-ink/75">{profile.bio}</p>}
 
