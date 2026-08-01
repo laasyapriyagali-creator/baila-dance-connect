@@ -123,10 +123,20 @@ export const ICE_BREAKERS = [
 const KEY = "baila.mvp.v1";
 
 const EMPTY: BailaState = {
-  profile: { name: "", city: "", bio: "", styles: [], experience: "Beginner", avatar: null },
+  profile: {
+    name: "",
+    age: null,
+    city: "",
+    bio: "",
+    styles: [],
+    experience: "Beginner",
+    avatar: null,
+  },
   reels: [],
   dates: [],
   passed: [],
+  blocked: [],
+  settings: DEFAULT_SETTINGS,
 };
 
 let state: BailaState = EMPTY;
@@ -139,10 +149,27 @@ function load(): BailaState {
   if (typeof window === "undefined") return state;
   try {
     const raw = window.localStorage.getItem(KEY);
-    if (raw) state = { ...EMPTY, ...(JSON.parse(raw) as BailaState) };
+    if (raw) {
+      const parsed = JSON.parse(raw) as Partial<BailaState>;
+      const s = parsed.settings;
+      state = {
+        ...EMPTY,
+        ...parsed,
+        profile: { ...EMPTY.profile, ...(parsed.profile ?? {}) },
+        settings: {
+          ...DEFAULT_SETTINGS,
+          ...(s ?? {}),
+          discovery: { ...DEFAULT_SETTINGS.discovery, ...(s?.discovery ?? {}) },
+          privacy: { ...DEFAULT_SETTINGS.privacy, ...(s?.privacy ?? {}) },
+          safety: { ...DEFAULT_SETTINGS.safety, ...(s?.safety ?? {}) },
+          notifications: { ...DEFAULT_SETTINGS.notifications, ...(s?.notifications ?? {}) },
+        },
+      };
+    }
   } catch {
     state = EMPTY;
   }
+
   return state;
 }
 
