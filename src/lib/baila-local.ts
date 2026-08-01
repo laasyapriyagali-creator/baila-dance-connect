@@ -6,12 +6,14 @@ export type Experience = "Beginner" | "Intermediate" | "Advanced" | "Pro";
 
 export type LocalProfile = {
   name: string;
+  age: number | null;
   city: string;
   bio: string;
   styles: string[];
   experience: Experience;
   avatar: string | null; // data URL
 };
+
 
 export type Reel = {
   id: string;
