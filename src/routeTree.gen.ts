@@ -9,19 +9,25 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as SettingsIndexRouteImport } from './routes/settings.index'
-import { Route as SettingsSafetyRouteImport } from './routes/settings.safety'
-import { Route as SettingsPrivacyRouteImport } from './routes/settings.privacy'
-import { Route as SettingsNotificationsRouteImport } from './routes/settings.notifications'
-import { Route as SettingsDiscoveryRouteImport } from './routes/settings.discovery'
-import { Route as SettingsAccountRouteImport } from './routes/settings.account'
-import { Route as LegalDocRouteImport } from './routes/legal.$doc'
+import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
+import { Route as AuthenticatedAppSettingsRouteImport } from './routes/_authenticated/app.settings'
+import { Route as AuthenticatedAppProfileRouteImport } from './routes/_authenticated/app.profile'
+import { Route as AuthenticatedAppOnboardingRouteImport } from './routes/_authenticated/app.onboarding'
+import { Route as AuthenticatedAppNotificationsRouteImport } from './routes/_authenticated/app.notifications'
+import { Route as AuthenticatedAppDateRouteImport } from './routes/_authenticated/app.date'
+import { Route as AuthenticatedAppDanceRouteImport } from './routes/_authenticated/app.dance'
+import { Route as AuthenticatedAppUUsernameRouteImport } from './routes/_authenticated/app.u.$username'
 
-const SettingsRoute = SettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -29,123 +35,149 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SettingsIndexRoute = SettingsIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => SettingsRoute,
+const AuthenticatedAppRoute = AuthenticatedAppRouteImport.update({
+  id: '/app',
+  path: '/app',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const SettingsSafetyRoute = SettingsSafetyRouteImport.update({
-  id: '/safety',
-  path: '/safety',
-  getParentRoute: () => SettingsRoute,
+const AuthenticatedAppSettingsRoute =
+  AuthenticatedAppSettingsRouteImport.update({
+    id: '/settings',
+    path: '/settings',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
+const AuthenticatedAppProfileRoute = AuthenticatedAppProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => AuthenticatedAppRoute,
 } as any)
-const SettingsPrivacyRoute = SettingsPrivacyRouteImport.update({
-  id: '/privacy',
-  path: '/privacy',
-  getParentRoute: () => SettingsRoute,
+const AuthenticatedAppOnboardingRoute =
+  AuthenticatedAppOnboardingRouteImport.update({
+    id: '/onboarding',
+    path: '/onboarding',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
+const AuthenticatedAppNotificationsRoute =
+  AuthenticatedAppNotificationsRouteImport.update({
+    id: '/notifications',
+    path: '/notifications',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
+const AuthenticatedAppDateRoute = AuthenticatedAppDateRouteImport.update({
+  id: '/date',
+  path: '/date',
+  getParentRoute: () => AuthenticatedAppRoute,
 } as any)
-const SettingsNotificationsRoute = SettingsNotificationsRouteImport.update({
-  id: '/notifications',
-  path: '/notifications',
-  getParentRoute: () => SettingsRoute,
+const AuthenticatedAppDanceRoute = AuthenticatedAppDanceRouteImport.update({
+  id: '/dance',
+  path: '/dance',
+  getParentRoute: () => AuthenticatedAppRoute,
 } as any)
-const SettingsDiscoveryRoute = SettingsDiscoveryRouteImport.update({
-  id: '/discovery',
-  path: '/discovery',
-  getParentRoute: () => SettingsRoute,
-} as any)
-const SettingsAccountRoute = SettingsAccountRouteImport.update({
-  id: '/account',
-  path: '/account',
-  getParentRoute: () => SettingsRoute,
-} as any)
-const LegalDocRoute = LegalDocRouteImport.update({
-  id: '/legal/$doc',
-  path: '/legal/$doc',
-  getParentRoute: () => rootRouteImport,
-} as any)
+const AuthenticatedAppUUsernameRoute =
+  AuthenticatedAppUUsernameRouteImport.update({
+    id: '/u/$username',
+    path: '/u/$username',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/settings': typeof SettingsRouteWithChildren
-  '/legal/$doc': typeof LegalDocRoute
-  '/settings/account': typeof SettingsAccountRoute
-  '/settings/discovery': typeof SettingsDiscoveryRoute
-  '/settings/notifications': typeof SettingsNotificationsRoute
-  '/settings/privacy': typeof SettingsPrivacyRoute
-  '/settings/safety': typeof SettingsSafetyRoute
-  '/settings/': typeof SettingsIndexRoute
+  '/auth': typeof AuthRoute
+  '/app': typeof AuthenticatedAppRouteWithChildren
+  '/app/dance': typeof AuthenticatedAppDanceRoute
+  '/app/date': typeof AuthenticatedAppDateRoute
+  '/app/notifications': typeof AuthenticatedAppNotificationsRoute
+  '/app/onboarding': typeof AuthenticatedAppOnboardingRoute
+  '/app/profile': typeof AuthenticatedAppProfileRoute
+  '/app/settings': typeof AuthenticatedAppSettingsRoute
+  '/app/u/$username': typeof AuthenticatedAppUUsernameRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/legal/$doc': typeof LegalDocRoute
-  '/settings/account': typeof SettingsAccountRoute
-  '/settings/discovery': typeof SettingsDiscoveryRoute
-  '/settings/notifications': typeof SettingsNotificationsRoute
-  '/settings/privacy': typeof SettingsPrivacyRoute
-  '/settings/safety': typeof SettingsSafetyRoute
-  '/settings': typeof SettingsIndexRoute
+  '/auth': typeof AuthRoute
+  '/app': typeof AuthenticatedAppRouteWithChildren
+  '/app/dance': typeof AuthenticatedAppDanceRoute
+  '/app/date': typeof AuthenticatedAppDateRoute
+  '/app/notifications': typeof AuthenticatedAppNotificationsRoute
+  '/app/onboarding': typeof AuthenticatedAppOnboardingRoute
+  '/app/profile': typeof AuthenticatedAppProfileRoute
+  '/app/settings': typeof AuthenticatedAppSettingsRoute
+  '/app/u/$username': typeof AuthenticatedAppUUsernameRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/settings': typeof SettingsRouteWithChildren
-  '/legal/$doc': typeof LegalDocRoute
-  '/settings/account': typeof SettingsAccountRoute
-  '/settings/discovery': typeof SettingsDiscoveryRoute
-  '/settings/notifications': typeof SettingsNotificationsRoute
-  '/settings/privacy': typeof SettingsPrivacyRoute
-  '/settings/safety': typeof SettingsSafetyRoute
-  '/settings/': typeof SettingsIndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/_authenticated/app': typeof AuthenticatedAppRouteWithChildren
+  '/_authenticated/app/dance': typeof AuthenticatedAppDanceRoute
+  '/_authenticated/app/date': typeof AuthenticatedAppDateRoute
+  '/_authenticated/app/notifications': typeof AuthenticatedAppNotificationsRoute
+  '/_authenticated/app/onboarding': typeof AuthenticatedAppOnboardingRoute
+  '/_authenticated/app/profile': typeof AuthenticatedAppProfileRoute
+  '/_authenticated/app/settings': typeof AuthenticatedAppSettingsRoute
+  '/_authenticated/app/u/$username': typeof AuthenticatedAppUUsernameRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/settings'
-    | '/legal/$doc'
-    | '/settings/account'
-    | '/settings/discovery'
-    | '/settings/notifications'
-    | '/settings/privacy'
-    | '/settings/safety'
-    | '/settings/'
+    | '/auth'
+    | '/app'
+    | '/app/dance'
+    | '/app/date'
+    | '/app/notifications'
+    | '/app/onboarding'
+    | '/app/profile'
+    | '/app/settings'
+    | '/app/u/$username'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/legal/$doc'
-    | '/settings/account'
-    | '/settings/discovery'
-    | '/settings/notifications'
-    | '/settings/privacy'
-    | '/settings/safety'
-    | '/settings'
+    | '/auth'
+    | '/app'
+    | '/app/dance'
+    | '/app/date'
+    | '/app/notifications'
+    | '/app/onboarding'
+    | '/app/profile'
+    | '/app/settings'
+    | '/app/u/$username'
   id:
     | '__root__'
     | '/'
-    | '/settings'
-    | '/legal/$doc'
-    | '/settings/account'
-    | '/settings/discovery'
-    | '/settings/notifications'
-    | '/settings/privacy'
-    | '/settings/safety'
-    | '/settings/'
+    | '/_authenticated'
+    | '/auth'
+    | '/_authenticated/app'
+    | '/_authenticated/app/dance'
+    | '/_authenticated/app/date'
+    | '/_authenticated/app/notifications'
+    | '/_authenticated/app/onboarding'
+    | '/_authenticated/app/profile'
+    | '/_authenticated/app/settings'
+    | '/_authenticated/app/u/$username'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  SettingsRoute: typeof SettingsRouteWithChildren
-  LegalDocRoute: typeof LegalDocRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/settings': {
-      id: '/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof SettingsRouteImport
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -155,84 +187,103 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/settings/': {
-      id: '/settings/'
-      path: '/'
-      fullPath: '/settings/'
-      preLoaderRoute: typeof SettingsIndexRouteImport
-      parentRoute: typeof SettingsRoute
+    '/_authenticated/app': {
+      id: '/_authenticated/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AuthenticatedAppRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/settings/safety': {
-      id: '/settings/safety'
-      path: '/safety'
-      fullPath: '/settings/safety'
-      preLoaderRoute: typeof SettingsSafetyRouteImport
-      parentRoute: typeof SettingsRoute
+    '/_authenticated/app/settings': {
+      id: '/_authenticated/app/settings'
+      path: '/settings'
+      fullPath: '/app/settings'
+      preLoaderRoute: typeof AuthenticatedAppSettingsRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
     }
-    '/settings/privacy': {
-      id: '/settings/privacy'
-      path: '/privacy'
-      fullPath: '/settings/privacy'
-      preLoaderRoute: typeof SettingsPrivacyRouteImport
-      parentRoute: typeof SettingsRoute
+    '/_authenticated/app/profile': {
+      id: '/_authenticated/app/profile'
+      path: '/profile'
+      fullPath: '/app/profile'
+      preLoaderRoute: typeof AuthenticatedAppProfileRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
     }
-    '/settings/notifications': {
-      id: '/settings/notifications'
+    '/_authenticated/app/onboarding': {
+      id: '/_authenticated/app/onboarding'
+      path: '/onboarding'
+      fullPath: '/app/onboarding'
+      preLoaderRoute: typeof AuthenticatedAppOnboardingRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/notifications': {
+      id: '/_authenticated/app/notifications'
       path: '/notifications'
-      fullPath: '/settings/notifications'
-      preLoaderRoute: typeof SettingsNotificationsRouteImport
-      parentRoute: typeof SettingsRoute
+      fullPath: '/app/notifications'
+      preLoaderRoute: typeof AuthenticatedAppNotificationsRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
     }
-    '/settings/discovery': {
-      id: '/settings/discovery'
-      path: '/discovery'
-      fullPath: '/settings/discovery'
-      preLoaderRoute: typeof SettingsDiscoveryRouteImport
-      parentRoute: typeof SettingsRoute
+    '/_authenticated/app/date': {
+      id: '/_authenticated/app/date'
+      path: '/date'
+      fullPath: '/app/date'
+      preLoaderRoute: typeof AuthenticatedAppDateRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
     }
-    '/settings/account': {
-      id: '/settings/account'
-      path: '/account'
-      fullPath: '/settings/account'
-      preLoaderRoute: typeof SettingsAccountRouteImport
-      parentRoute: typeof SettingsRoute
+    '/_authenticated/app/dance': {
+      id: '/_authenticated/app/dance'
+      path: '/dance'
+      fullPath: '/app/dance'
+      preLoaderRoute: typeof AuthenticatedAppDanceRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
     }
-    '/legal/$doc': {
-      id: '/legal/$doc'
-      path: '/legal/$doc'
-      fullPath: '/legal/$doc'
-      preLoaderRoute: typeof LegalDocRouteImport
-      parentRoute: typeof rootRouteImport
+    '/_authenticated/app/u/$username': {
+      id: '/_authenticated/app/u/$username'
+      path: '/u/$username'
+      fullPath: '/app/u/$username'
+      preLoaderRoute: typeof AuthenticatedAppUUsernameRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
     }
   }
 }
 
-interface SettingsRouteChildren {
-  SettingsAccountRoute: typeof SettingsAccountRoute
-  SettingsDiscoveryRoute: typeof SettingsDiscoveryRoute
-  SettingsNotificationsRoute: typeof SettingsNotificationsRoute
-  SettingsPrivacyRoute: typeof SettingsPrivacyRoute
-  SettingsSafetyRoute: typeof SettingsSafetyRoute
-  SettingsIndexRoute: typeof SettingsIndexRoute
+interface AuthenticatedAppRouteChildren {
+  AuthenticatedAppDanceRoute: typeof AuthenticatedAppDanceRoute
+  AuthenticatedAppDateRoute: typeof AuthenticatedAppDateRoute
+  AuthenticatedAppNotificationsRoute: typeof AuthenticatedAppNotificationsRoute
+  AuthenticatedAppOnboardingRoute: typeof AuthenticatedAppOnboardingRoute
+  AuthenticatedAppProfileRoute: typeof AuthenticatedAppProfileRoute
+  AuthenticatedAppSettingsRoute: typeof AuthenticatedAppSettingsRoute
+  AuthenticatedAppUUsernameRoute: typeof AuthenticatedAppUUsernameRoute
 }
 
-const SettingsRouteChildren: SettingsRouteChildren = {
-  SettingsAccountRoute: SettingsAccountRoute,
-  SettingsDiscoveryRoute: SettingsDiscoveryRoute,
-  SettingsNotificationsRoute: SettingsNotificationsRoute,
-  SettingsPrivacyRoute: SettingsPrivacyRoute,
-  SettingsSafetyRoute: SettingsSafetyRoute,
-  SettingsIndexRoute: SettingsIndexRoute,
+const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
+  AuthenticatedAppDanceRoute: AuthenticatedAppDanceRoute,
+  AuthenticatedAppDateRoute: AuthenticatedAppDateRoute,
+  AuthenticatedAppNotificationsRoute: AuthenticatedAppNotificationsRoute,
+  AuthenticatedAppOnboardingRoute: AuthenticatedAppOnboardingRoute,
+  AuthenticatedAppProfileRoute: AuthenticatedAppProfileRoute,
+  AuthenticatedAppSettingsRoute: AuthenticatedAppSettingsRoute,
+  AuthenticatedAppUUsernameRoute: AuthenticatedAppUUsernameRoute,
 }
 
-const SettingsRouteWithChildren = SettingsRoute._addFileChildren(
-  SettingsRouteChildren,
-)
+const AuthenticatedAppRouteWithChildren =
+  AuthenticatedAppRoute._addFileChildren(AuthenticatedAppRouteChildren)
+
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAppRoute: typeof AuthenticatedAppRouteWithChildren
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAppRoute: AuthenticatedAppRouteWithChildren,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  SettingsRoute: SettingsRouteWithChildren,
-  LegalDocRoute: LegalDocRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
