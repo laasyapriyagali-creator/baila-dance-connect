@@ -3,7 +3,7 @@ import { ArrowLeft, ChevronRight, LogOut, Shield, Bell, HardDrive, Music2, LifeB
 import { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, IconButton, Page, Toggle } from "@/components/ui-baila";
+import { Card, Page, Toggle } from "@/components/ui-baila";
 
 export const Route = createFileRoute("/_authenticated/app/settings")({
   head: () => ({
