@@ -14,6 +14,7 @@ import {
   Music2,
   ImagePlus,
   User as UserIcon,
+  Film,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -24,6 +25,7 @@ import { EditProfileDialog } from "@/components/baila/EditProfileDialog";
 import { SignedImage } from "@/components/baila/SignedMedia";
 import { VideoPlayerDialog } from "@/components/baila/VideoPlayerDialog";
 import { type DanceVideo, type Profile } from "@/lib/baila-types";
+import { Button, EmptyState, Pill, Skeleton, StatCard } from "@/components/ui-baila";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -36,7 +38,11 @@ export const Route = createFileRoute("/_authenticated/app/profile")({
   head: () => ({
     meta: [
       { title: "Profile — Baila" },
-      { name: "description", content: "Your identity and dance reel." },
+      { name: "description", content: "Your identity and dance reel on Baila." },
+      { property: "og:title", content: "Profile — Baila" },
+      { property: "og:description", content: "Your identity and dance reel on Baila." },
+      { property: "og:type", content: "profile" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: ProfilePage,
@@ -82,7 +88,6 @@ function ProfilePage() {
   });
 
   // Onboarding flow handles initial profile setup at /app/onboarding.
-
 
   const removeVideo = async (v: DanceVideo) => {
     await supabase.storage.from("dance-videos").remove([v.storage_path]);
@@ -138,10 +143,18 @@ function ProfilePage() {
 
   if (!profile) {
     return (
-      <div className="space-y-4 p-5">
-        <div className="h-44 animate-pulse rounded-2xl bg-baila-ink/5" />
-        <div className="h-24 w-24 animate-pulse rounded-full bg-baila-ink/5" />
-        <div className="h-4 w-40 animate-pulse rounded bg-baila-ink/5" />
+      <div className="pb-8">
+        <Skeleton className="h-48 w-full rounded-none" />
+        <div className="-mt-14 space-y-4 px-5">
+          <Skeleton className="h-28 w-28 rounded-full" />
+          <Skeleton className="h-6 w-44 rounded-full" />
+          <Skeleton className="h-4 w-28 rounded-full" />
+          <div className="grid grid-cols-3 gap-2.5 pt-2">
+            {[0, 1, 2].map((i) => (
+              <Skeleton key={i} className="h-20 rounded-3xl" />
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
@@ -149,7 +162,7 @@ function ProfilePage() {
   const name = profile.display_name || profile.username || "Your name";
 
   return (
-    <div className="pb-8">
+    <div className="animate-rise pb-8">
       <input
         ref={coverInputRef}
         type="file"
@@ -174,7 +187,7 @@ function ProfilePage() {
       />
 
       {/* Cover */}
-      <div className="relative h-44 w-full overflow-hidden bg-baila-yellow-soft">
+      <div className="relative h-48 w-full overflow-hidden">
         {profile.cover_url ? (
           <SignedImage
             bucket="covers"
@@ -183,31 +196,33 @@ function ProfilePage() {
             className="absolute inset-0 h-full w-full object-cover"
           />
         ) : (
-          <div className="absolute inset-0 bg-gradient-to-br from-baila-yellow to-baila-yellow-soft" />
+          <div className="bg-gradient-baila absolute inset-0" />
         )}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-baila-cream" />
+        <div className="absolute inset-0 bg-gradient-to-b from-baila-ink/10 via-transparent to-background" />
         <button
           onClick={() => coverInputRef.current?.click()}
           aria-label="Change cover"
-          className="absolute left-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-baila-ink shadow-sm backdrop-blur"
+          className="press absolute left-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/85 text-baila-ink shadow-soft backdrop-blur"
+          style={{ top: "max(env(safe-area-inset-top), 1rem)" }}
         >
-          <ImagePlus className="h-5 w-5" />
+          <ImagePlus className="h-[18px] w-[18px]" />
         </button>
         <Link
           to="/app/settings"
           aria-label="Settings"
-          className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-baila-ink shadow-sm backdrop-blur"
+          className="press absolute right-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/85 text-baila-ink shadow-soft backdrop-blur"
+          style={{ top: "max(env(safe-area-inset-top), 1rem)" }}
         >
-          <Settings className="h-5 w-5" />
+          <Settings className="h-[18px] w-[18px]" />
         </Link>
       </div>
 
       {/* Identity */}
-      <section className="-mt-12 px-5">
-        <div className="flex items-end justify-between">
+      <section className="-mt-14 px-5">
+        <div className="flex items-end justify-between gap-3">
           <button
             onClick={() => avatarInputRef.current?.click()}
-            className="group relative h-24 w-24 overflow-hidden rounded-full ring-4 ring-baila-cream"
+            className="press group relative h-28 w-28 overflow-hidden rounded-full ring-[5px] ring-background"
             aria-label="Change avatar"
           >
             {profile.avatar_url ? (
@@ -218,52 +233,49 @@ function ProfilePage() {
                 className="h-full w-full object-cover"
               />
             ) : (
-              <div className="flex h-full w-full items-center justify-center bg-baila-yellow text-baila-ink">
-                <UserIcon className="h-9 w-9" />
+              <div className="bg-gradient-baila flex h-full w-full items-center justify-center text-baila-ink">
+                <UserIcon className="h-10 w-10" />
               </div>
             )}
-            <span className="absolute inset-x-0 bottom-0 flex h-7 items-center justify-center bg-black/45 text-[10px] font-semibold uppercase tracking-wider text-white opacity-0 transition group-hover:opacity-100">
+            <span className="absolute inset-x-0 bottom-0 flex h-8 items-center justify-center bg-baila-ink/50 text-[10px] font-bold uppercase tracking-[0.1em] text-white opacity-0 transition-opacity group-hover:opacity-100">
               Change
             </span>
           </button>
-          <button
-            onClick={() => setEditOpen(true)}
-            className="mb-1 flex items-center gap-1.5 rounded-full border border-baila-ink/15 bg-white px-4 py-2 text-sm font-semibold text-baila-ink shadow-sm"
-          >
+          <Button variant="secondary" size="sm" className="mb-2 h-10" onClick={() => setEditOpen(true)}>
             <Pencil className="h-4 w-4" />
-            Edit Profile
-          </button>
+            Edit profile
+          </Button>
         </div>
 
-        <div className="mt-3">
-          <h1 className="font-display text-2xl font-semibold leading-tight text-baila-ink">{name}</h1>
-        </div>
-        {profile.username && <p className="text-sm text-baila-ink/60">@{profile.username}</p>}
+        <h1 className="mt-4 font-display text-[1.75rem] font-semibold leading-tight tracking-[-0.03em] text-baila-ink">
+          {name}
+        </h1>
+        {profile.username && <p className="mt-0.5 text-sm text-baila-ink/50">@{profile.username}</p>}
         {profile.headline && (
-          <p className="mt-1 text-[15px] font-medium text-baila-ink/85">{profile.headline}</p>
+          <p className="mt-2 text-[15px] font-medium leading-snug text-baila-ink/80">{profile.headline}</p>
         )}
 
         {profile.bio ? (
-          <p className="mt-3 whitespace-pre-line text-[15px] leading-relaxed text-baila-ink/85">
+          <p className="mt-3 whitespace-pre-line text-[15px] leading-relaxed text-baila-ink/75">
             {profile.bio}
           </p>
         ) : (
           <button
             onClick={() => setEditOpen(true)}
-            className="mt-3 text-sm text-baila-ink/50 underline-offset-2 hover:underline"
+            className="mt-3 text-sm font-medium text-baila-ink/45 underline underline-offset-4"
           >
             Add a short bio
           </button>
         )}
 
-        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-baila-ink/70">
+        <div className="mt-3.5 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-baila-ink/60">
           {profile.city && (
-            <span className="flex items-center gap-1">
+            <span className="flex items-center gap-1.5">
               <MapPin className="h-4 w-4" /> {profile.city}
             </span>
           )}
           {profile.experience && (
-            <span className="flex items-center gap-1">
+            <span className="flex items-center gap-1.5">
               <Sparkles className="h-4 w-4" /> {profile.experience}
             </span>
           )}
@@ -273,66 +285,65 @@ function ProfilePage() {
               href={s.url}
               target="_blank"
               rel="noreferrer"
-              className="flex items-center gap-1 text-baila-ink/70 underline-offset-2 hover:underline"
+              className="flex items-center gap-1.5 font-medium text-baila-ink/70 underline-offset-4 hover:underline"
             >
               <LinkIcon className="h-4 w-4" /> {s.label}
             </a>
           ))}
         </div>
 
-        <div className="mt-5 rounded-2xl border border-baila-ink/10 bg-white py-3 text-center">
-          <p className="font-display text-lg font-semibold text-baila-ink">
-            {videos?.length ?? 0}
-          </p>
-          <p className="text-[11px] uppercase tracking-wider text-baila-ink/55">
-            Dance videos
-          </p>
+        <div className="mt-5 grid grid-cols-3 gap-2.5">
+          <StatCard value={videos?.length ?? 0} label="Dances" icon={<Film className="h-4 w-4" />} />
+          <StatCard
+            value={profile.dance_styles.length}
+            label="Styles"
+            icon={<Music2 className="h-4 w-4" />}
+          />
+          <StatCard
+            value={profile.years_dancing != null && profile.years_dancing > 0 ? `${profile.years_dancing}y` : "—"}
+            label="Dancing"
+            icon={<Sparkles className="h-4 w-4" />}
+          />
         </div>
 
         {profile.dance_styles.length > 0 && (
-          <div className="mt-5 flex flex-wrap gap-2">
+          <div className="mt-4 flex flex-wrap gap-2">
             {profile.dance_styles.map((s) => (
-              <span
-                key={s}
-                className="rounded-full bg-baila-yellow px-3 py-1.5 text-xs font-bold text-baila-ink"
-              >
+              <Pill key={s} className="px-3 py-1.5 text-[11px]">
                 {s}
-              </span>
+              </Pill>
             ))}
           </div>
         )}
       </section>
 
       {/* Reel */}
-      <section className="mt-7 px-5">
-        <div className="mb-3 flex items-end justify-between">
-          <h2 className="font-display text-xl font-semibold text-baila-ink">Dance reel</h2>
-          <button
-            onClick={() => setUploadOpen(true)}
-            className="flex items-center gap-1 rounded-full bg-baila-ink px-3.5 py-2 text-xs font-semibold text-baila-cream"
-          >
+      <section className="mt-8 px-5">
+        <div className="mb-3 flex items-end justify-between gap-3">
+          <h2 className="font-display text-xl font-semibold tracking-[-0.02em] text-baila-ink">Dance reel</h2>
+          <Button variant="ink" size="sm" onClick={() => setUploadOpen(true)}>
             <Plus className="h-4 w-4" /> Upload
-          </button>
+          </Button>
         </div>
 
         {!videos || videos.length === 0 ? (
-          <button
-            onClick={() => setUploadOpen(true)}
-            className="flex w-full flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-baila-ink/20 bg-baila-yellow-soft p-10 text-baila-ink"
-          >
-            <Music2 className="h-7 w-7" />
-            <span className="text-sm font-semibold">Upload your first dance</span>
-            <span className="text-xs text-baila-ink/60">
-              Your reel is how others discover you on Baila
-            </span>
-          </button>
+          <EmptyState
+            icon={<Music2 className="h-6 w-6" />}
+            title="Upload your first dance"
+            body="Your reel is how others discover you on Baila — phone footage is perfect."
+            action={
+              <Button variant="primary" onClick={() => setUploadOpen(true)}>
+                <Plus className="h-4 w-4" /> Upload a dance
+              </Button>
+            }
+          />
         ) : (
-          <ul className="grid grid-cols-3 gap-1.5">
-            {videos.map((v) => (
+          <ul className="grid grid-cols-3 gap-2">
+            {videos.map((v, i) => (
               <li
                 key={v.id}
-                className="group relative overflow-hidden rounded-lg bg-baila-ink"
-                style={{ aspectRatio: "3 / 4" }}
+                className="animate-pop-in group relative overflow-hidden rounded-2xl bg-baila-ink shadow-soft"
+                style={{ aspectRatio: "3 / 4", animationDelay: `${i * 35}ms` }}
               >
                 <button
                   type="button"
@@ -344,41 +355,41 @@ function ProfilePage() {
                     bucket="dance-videos"
                     path={v.poster_url ?? v.storage_path}
                     alt="Dance video"
-                    className="absolute inset-0 h-full w-full object-cover"
+                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.06]"
                     fallback={
-                      <div className="absolute inset-0 flex items-center justify-center text-baila-cream/70">
+                      <div className="shimmer absolute inset-0 flex items-center justify-center text-baila-cream/60">
                         <Music2 className="h-6 w-6" />
                       </div>
                     }
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-baila-ink/60 via-transparent to-transparent" />
                   <span className="absolute inset-0 flex items-center justify-center">
-                    <span className="flex h-9 w-9 items-center justify-center rounded-full bg-white/25 text-white backdrop-blur">
+                    <span className="flex h-10 w-10 items-center justify-center rounded-full border border-white/25 bg-white/20 text-white backdrop-blur-md transition-transform duration-200 group-hover:scale-110">
                       <Play className="h-4 w-4" fill="currentColor" />
                     </span>
                   </span>
                 </button>
                 {v.is_main && (
-                  <span className="absolute left-1.5 top-1.5 flex items-center gap-0.5 rounded-full bg-baila-yellow px-1.5 py-0.5 text-[9px] font-bold text-baila-ink">
+                  <span className="bg-gradient-baila absolute left-2 top-2 flex items-center gap-0.5 rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.06em] text-baila-ink shadow-soft">
                     <Star className="h-2.5 w-2.5" fill="currentColor" /> Main
                   </span>
                 )}
                 {v.duration_seconds != null && (
-                  <span className="absolute right-1.5 top-1.5 rounded-full bg-black/55 px-1.5 py-0.5 text-[9px] font-semibold text-white">
+                  <span className="absolute right-2 top-2 rounded-full bg-baila-ink/55 px-2 py-0.5 text-[9px] font-bold text-white backdrop-blur">
                     0:{String(v.duration_seconds).padStart(2, "0")}
                   </span>
                 )}
-                <div className="absolute bottom-1 right-1">
+                <div className="absolute bottom-1.5 right-1.5">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <button
                         aria-label="Video menu"
-                        className="flex h-7 w-7 items-center justify-center rounded-full bg-black/45 text-white backdrop-blur"
+                        className="press flex h-8 w-8 items-center justify-center rounded-full border border-white/20 bg-white/20 text-white backdrop-blur-md"
                       >
                         <MoreVertical className="h-3.5 w-3.5" />
                       </button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="rounded-2xl">
+                    <DropdownMenuContent align="end" className="rounded-2xl border-baila-ink/10 shadow-card">
                       {!v.is_main && (
                         <DropdownMenuItem onClick={() => setMain(v)}>
                           <Star className="mr-2 h-4 w-4" /> Set as main
@@ -399,7 +410,6 @@ function ProfilePage() {
           </ul>
         )}
       </section>
-
 
       {user && (
         <UploadVideoDialog userId={user.id} open={uploadOpen} onOpenChange={setUploadOpen} />
