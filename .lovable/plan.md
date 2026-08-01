@@ -1,110 +1,70 @@
-# Baila — Platform Overhaul (Scope 4 / 5)
+# Baila — Settings, Privacy & Safety
 
-Touches all four priority areas while preserving the yellow/black design language. No messaging is introduced — the IRL-first philosophy stays.
+Your sketch confirms the shape the app already has: Dance feed → dancer profile → "Dance with [name]" yes/no → match → Your Dates (Sent / Received / Accepted / Completed) → "Go again?", plus a Profile tab with avatar, Dances/Dates counters, name-age-location, bio, video grid + upload, and a **gear icon top-right**. That gear is the only thing in the sketch that does not exist today — everything below is about filling it.
 
-## 1. Roles & data model
+## Where Settings lives
 
-Add three roles: `dancer` (default), `instructor`, `organizer`.
+- Gear icon in the top-right of the Profile tab.
+- Opens a full-screen Settings screen (its own page, not a modal), with a back arrow. Grouped list rows, same pastel-blue/black tokens, no new palette.
+- Sub-screens for each long section (Privacy, Safety, Legal), so the top level stays scannable.
 
-Schema changes (single migration):
-- `profiles.role` enum `('dancer','instructor','organizer')`, default `'dancer'`.
-- `profiles.headline` text (one-liner under name).
-- `profiles.availability` text[] (e.g. weeknights, weekends).
-- `profiles.years_dancing` int.
-- New table `public.events` (organizer-owned: title, style, city, venue, starts_at, cover_path, description). Read-all-authenticated; write-own + role check via `has_role`.
-- New table `public.classes` (instructor-owned: title, style, level, city, recurrence, cover_path). Same policy shape.
-- New table `public.notifications` (user_id, kind, payload jsonb, read_at). RLS: owner only.
-- `connection_requests`: add `seen_at` for "new request" badge.
-- GRANTs + RLS for every new table; security-definer `has_role(uuid, app_role)` helper.
+## Settings structure (approximate, based on how Tinder/Bumble/Hinge organise this)
 
-## 2. Onboarding wizard
+**Account**
+- Name, age, location, bio (jumps to profile edit)
+- Phone / email on file (later, when accounts return)
+- Log out
+- Pause account — hide me from the Dance feed but keep my dates
+- Delete account + all my videos (irreversible, confirm step)
 
-New route `/_authenticated/onboarding` gated by `profiles.onboarded = false`. 4 steps:
-1. Pick role (dancer / instructor / organizer) with iconography.
-2. Display name + username + city.
-3. Dance styles (multi-select chips) + experience level + years.
-4. Upload first dance video OR skip (dancers prompted, instructors/organizers optional).
+**Discovery**
+- Dance styles I want to see
+- Distance radius
+- Age range
+- Show me to: everyone / only people I've asked to dance
+- Reset "passed" dancers
 
-App shell redirects to onboarding when incomplete.
+**Privacy**
+- Hide my age
+- Hide my exact location (show city only)
+- Who can see my videos: everyone in feed / only matches
+- Allow my videos to be shown as a featured dancer
+- Download my data
+- Personalised content / analytics opt-out
 
-## 3. Discovery feed upgrades
+**Safety** (the part dating apps treat as non-negotiable)
+- Blocked dancers list (unblock)
+- Report a dancer / report a video — reason list, sends out of the app, never a public comment
+- Share my date details with a trusted contact (name + phone, one tap before a date)
+- Date safety checklist shown before every first meet (public place, tell a friend, your own transport)
+- Emergency contact stored locally
+- Photo/ID verification badge (needs a backend; stub the row now, mark "coming soon" or leave out)
+- Explicit-content auto-blur on incoming videos
 
-`app.dance.tsx`:
-- Snap-scroll vertical feed with `<video>` IntersectionObserver autoplay (muted, playsInline), pause when off-screen.
-- Preload next 2 signed URLs.
-- Tap to mute/unmute; double-tap = Dance With Me; swipe left = Next.
-- Recommendation ordering: prefer overlapping dance styles + same city, then recency, exclude self + already-actioned.
-- Filter sheet: style, city, role.
-- Skeleton + refined empty state with CTA to upload.
-- Surface instructor/organizer badge + linked class/event chip on their cards.
+**Notifications**
+- New dance invite
+- Invite accepted / declined
+- Date reminder (1 day / 2 hours before)
+- "Go again?" requests
+- Master mute
 
-## 4. Upload flow
+**Legal & community**
+- Community Guidelines — dance-first conduct: real movement only, no nudity, no stolen videos, no minors, no harassment, respect a "no", show up or cancel early
+- Terms of Service
+- Privacy Policy
+- Cookie/analytics notice
+- Safety Centre / dating safety tips
+- Contact support, report a bug
+- App version
 
-`UploadVideoDialog.tsx`:
-- Drag-drop zone, file validation (type, ≤100MB, ≤90s via metadata probe).
-- Auto-generate poster from first frame via canvas; upload poster alongside video.
-- Real progress (resumable `uploadToSignedUrl` with chunked fallback), retry on failure.
-- Optional caption, style tag, set-as-main toggle.
-- Queue multiple files; per-item status.
+## Honest constraints
 
-## 5. Connections (no chat)
-
-`app.connections.tsx`:
-- Three tabs: Requests / Dancing / Past.
-- "Meet IRL" card replaces messaging: shows mutual styles, shared city, suggested local venues (static curated list per city for now), and an "Ice-breaker move" prompt (random from a curated list) — keeps philosophy intact.
-- "Plan a dance" action drops a calendar `.ics` download with a placeholder time the user edits.
-- Unseen-request badge on the bottom tab via `connection_requests.seen_at`.
-
-## 6. Notifications
-
-Lightweight bell in top bar:
-- DB triggers insert notifications on: new request, mutual match, new class/event from instructors/organizers you've connected with.
-- Realtime subscription on `notifications` for live badge.
-- Notification list route `/_authenticated/app/notifications`.
-
-## 7. Profile
-
-`app.profile.tsx`:
-- Role badge + headline + years dancing.
-- Instructor view: "Classes" section. Organizer view: "Events" section. Both editable inline.
-- Dancer view unchanged structurally, with availability chips added.
-- Public read of others' profiles via `/_authenticated/app/u/$username`.
-
-## 8. Search
-
-New `/_authenticated/app/search` with tabs: Dancers / Classes / Events.
-- Server-side `ilike` on display_name, username, styles, city.
-- Empty state and recent-searches stored in localStorage.
-
-## 9. Accessibility
-
-- All icon-only buttons get `aria-label`.
-- Replace `h-screen` with `h-dvh` in feed.
-- Focus-visible rings on all interactive elements via Tailwind utility.
-- Live-region (`role="status"`) for upload progress and toast equivalents.
-- Verify color contrast on yellow-on-black CTAs (already AA, audit secondary text).
-- Single `<main>` per route, proper heading order.
-
-## 10. Performance
-
-- Signed-URL cache TTL bump + LRU eviction in `src/lib/storage.ts`.
-- `defaultPreloadStaleTime: 0` confirmed; route loaders prime via `ensureQueryData`.
-- Lazy-load EditProfile / Upload dialogs with `React.lazy`.
-- `<img>` wrappers use `aspect-*`; posters use `loading="lazy"` except first feed item.
-- Memoize feed cards; virtualize connections list when > 30 rows.
+- The app is currently local-only (localStorage + IndexedDB, no sign-up). So Blocked list, Report, Verification, and Download-my-data can be built as real UI but only have local effect until accounts and a backend come back. I'll label those rows accurately rather than faking outcomes.
+- Terms, Privacy Policy and Guidelines pages will be written as your own app-owned text. I will not claim GDPR/SOC 2 compliance, encryption levels, or verification you don't actually have — anything legal-binding, I'll leave clear placeholders for you to fill or approve.
 
 ## Technical notes
 
-- Roles enforced via `public.has_role(_user_id uuid, _role app_role)` security-definer + RLS using it on `events`/`classes` writes.
-- Notifications created by DB triggers on `connection_requests`, `classes`, `events` — no client-side fanout.
-- Recommendation ranking runs as a `createServerFn` with `requireSupabaseAuth` returning a ranked array of `dance_videos` ids; client hydrates via existing query path.
-- Onboarding redirect lives in `_authenticated/route.tsx` post-`getUser` check (one extra profile fetch, cached).
-- All new tables ship with GRANTs + RLS + `service_role` ALL in the same migration.
-- No new dependencies expected beyond what's already installed; if calendar export needs a helper, hand-roll the .ics string (no library).
-
-## Out of scope (explicit)
-
-- Any form of pre-match messaging or chat.
-- Likes, comments, follower counts, stories.
-- Push notifications (in-app bell only this pass).
-- Payments / ticketing for events and classes.
+- New route `src/routes/settings.tsx` (plus nested privacy/safety/legal screens), navigated from the Profile gear.
+- Extend `src/lib/baila-local.ts` with a `settings` slice (discovery filters, privacy toggles, notification prefs, blocked ids, emergency contact) persisted under the same `baila.mvp.v1` key, exposed via existing `useBaila()`.
+- `DanceFeed.tsx` reads discovery + blocked settings when filtering reels; `ProfilePanel.tsx` respects hide-age / city-only.
+- Legal pages as plain JSX text, own routes, linked from Settings and reachable directly.
