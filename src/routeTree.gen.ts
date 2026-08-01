@@ -14,6 +14,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as SettingsIndexRouteImport } from './routes/settings.index'
 import { Route as SettingsSafetyRouteImport } from './routes/settings.safety'
 import { Route as SettingsPrivacyRouteImport } from './routes/settings.privacy'
+import { Route as SettingsNotificationsRouteImport } from './routes/settings.notifications'
 import { Route as SettingsDiscoveryRouteImport } from './routes/settings.discovery'
 import { Route as SettingsAccountRouteImport } from './routes/settings.account'
 
@@ -42,6 +43,11 @@ const SettingsPrivacyRoute = SettingsPrivacyRouteImport.update({
   path: '/privacy',
   getParentRoute: () => SettingsRoute,
 } as any)
+const SettingsNotificationsRoute = SettingsNotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => SettingsRoute,
+} as any)
 const SettingsDiscoveryRoute = SettingsDiscoveryRouteImport.update({
   id: '/discovery',
   path: '/discovery',
@@ -58,6 +64,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRouteWithChildren
   '/settings/account': typeof SettingsAccountRoute
   '/settings/discovery': typeof SettingsDiscoveryRoute
+  '/settings/notifications': typeof SettingsNotificationsRoute
   '/settings/privacy': typeof SettingsPrivacyRoute
   '/settings/safety': typeof SettingsSafetyRoute
   '/settings/': typeof SettingsIndexRoute
@@ -66,6 +73,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/settings/account': typeof SettingsAccountRoute
   '/settings/discovery': typeof SettingsDiscoveryRoute
+  '/settings/notifications': typeof SettingsNotificationsRoute
   '/settings/privacy': typeof SettingsPrivacyRoute
   '/settings/safety': typeof SettingsSafetyRoute
   '/settings': typeof SettingsIndexRoute
@@ -76,6 +84,7 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRouteWithChildren
   '/settings/account': typeof SettingsAccountRoute
   '/settings/discovery': typeof SettingsDiscoveryRoute
+  '/settings/notifications': typeof SettingsNotificationsRoute
   '/settings/privacy': typeof SettingsPrivacyRoute
   '/settings/safety': typeof SettingsSafetyRoute
   '/settings/': typeof SettingsIndexRoute
@@ -87,6 +96,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/settings/account'
     | '/settings/discovery'
+    | '/settings/notifications'
     | '/settings/privacy'
     | '/settings/safety'
     | '/settings/'
@@ -95,6 +105,7 @@ export interface FileRouteTypes {
     | '/'
     | '/settings/account'
     | '/settings/discovery'
+    | '/settings/notifications'
     | '/settings/privacy'
     | '/settings/safety'
     | '/settings'
@@ -104,6 +115,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/settings/account'
     | '/settings/discovery'
+    | '/settings/notifications'
     | '/settings/privacy'
     | '/settings/safety'
     | '/settings/'
@@ -151,6 +163,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsPrivacyRouteImport
       parentRoute: typeof SettingsRoute
     }
+    '/settings/notifications': {
+      id: '/settings/notifications'
+      path: '/notifications'
+      fullPath: '/settings/notifications'
+      preLoaderRoute: typeof SettingsNotificationsRouteImport
+      parentRoute: typeof SettingsRoute
+    }
     '/settings/discovery': {
       id: '/settings/discovery'
       path: '/discovery'
@@ -171,6 +190,7 @@ declare module '@tanstack/react-router' {
 interface SettingsRouteChildren {
   SettingsAccountRoute: typeof SettingsAccountRoute
   SettingsDiscoveryRoute: typeof SettingsDiscoveryRoute
+  SettingsNotificationsRoute: typeof SettingsNotificationsRoute
   SettingsPrivacyRoute: typeof SettingsPrivacyRoute
   SettingsSafetyRoute: typeof SettingsSafetyRoute
   SettingsIndexRoute: typeof SettingsIndexRoute
@@ -179,6 +199,7 @@ interface SettingsRouteChildren {
 const SettingsRouteChildren: SettingsRouteChildren = {
   SettingsAccountRoute: SettingsAccountRoute,
   SettingsDiscoveryRoute: SettingsDiscoveryRoute,
+  SettingsNotificationsRoute: SettingsNotificationsRoute,
   SettingsPrivacyRoute: SettingsPrivacyRoute,
   SettingsSafetyRoute: SettingsSafetyRoute,
   SettingsIndexRoute: SettingsIndexRoute,
