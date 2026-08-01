@@ -1,14 +1,14 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Bell, SlidersHorizontal, Sparkles, X } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { Bell, SlidersHorizontal, Sparkles, X, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/lib/auth";
 import { DanceCard, type FeedItem } from "@/components/baila/DanceCard";
 import { DANCE_STYLES, type Profile, type DanceVideo } from "@/lib/baila-types";
 import { prewarm } from "@/lib/storage";
+import { Button, Chip, DanceLoader, EmptyState, IconButton, ModalSheet, Toggle } from "@/components/ui-baila";
 import {
   Sheet,
   SheetContent,
@@ -18,6 +18,16 @@ import {
 } from "@/components/ui/sheet";
 
 export const Route = createFileRoute("/_authenticated/app/dance")({
+  head: () => ({
+    meta: [
+      { title: "Dance — Baila" },
+      { name: "description", content: "Discover dancers through movement and ask someone to share a floor." },
+      { property: "og:title", content: "Dance — Baila" },
+      { property: "og:description", content: "Discover dancers through movement and ask someone to share a floor." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
   component: DanceFeed,
 });
 
@@ -163,45 +173,61 @@ function DanceFeed() {
   };
 
   const items = useMemo(() => feed ?? [], [feed]);
+  const activeFilters = styleFilter.length + (cityOnly ? 1 : 0);
 
   return (
-    <div className="relative h-[100dvh]">
-      <header className="absolute inset-x-0 top-0 z-30 flex items-center justify-between px-4 pt-3" style={{ paddingTop: "max(env(safe-area-inset-top), 0.75rem)" }}>
-        <h1 className="font-display text-2xl font-bold text-white drop-shadow">Baila</h1>
+    <div className="relative h-[100dvh] bg-baila-ink">
+      <header
+        className="absolute inset-x-0 top-0 z-30 flex items-center justify-between px-4"
+        style={{ paddingTop: "max(env(safe-area-inset-top), 0.85rem)" }}
+      >
+        <h1 className="font-display text-2xl font-semibold tracking-[-0.03em] text-white drop-shadow-md">Baila</h1>
         <div className="flex gap-2">
-          <button
-            aria-label="Filters"
-            onClick={() => setFiltersOpen(true)}
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur"
-          >
+          <IconButton variant="glass" aria-label="Filters" onClick={() => setFiltersOpen(true)} className="relative">
             <SlidersHorizontal className="h-4 w-4" />
-          </button>
-          <button
-            aria-label="Dance dates"
-            onClick={() => navigate({ to: "/app/date" })}
-            className="flex h-10 w-10 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur"
-          >
+            {activeFilters > 0 && (
+              <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-baila-yellow px-1 text-[10px] font-bold text-baila-ink">
+                {activeFilters}
+              </span>
+            )}
+          </IconButton>
+          <IconButton variant="glass" aria-label="Dance dates" onClick={() => navigate({ to: "/app/date" })}>
             <Bell className="h-4 w-4" />
-          </button>
+          </IconButton>
         </div>
       </header>
 
       <div
         ref={containerRef}
-        className="h-full snap-y snap-mandatory overflow-y-auto"
-        style={{ scrollbarWidth: "none" }}
+        className="no-scrollbar h-full snap-y snap-mandatory overflow-y-auto"
       >
         {isLoading && (
-          <div className="flex h-full items-center justify-center text-baila-ink/60">Loading dancers…</div>
+          <div className="flex h-full flex-col items-center justify-center gap-4">
+            <DanceLoader label="Finding dancers near you…" />
+          </div>
         )}
-        {!isLoading && items.length === 0 && <EmptyFeed />}
+        {!isLoading && items.length === 0 && (
+          <div className="flex h-full items-center justify-center px-6">
+            <EmptyState
+              tone="dark"
+              icon={<Sparkles className="h-6 w-6" />}
+              title="No new dancers right now"
+              body="Come back soon — or upload a video so others discover you first."
+              action={
+                <Button variant="primary" onClick={() => navigate({ to: "/app/profile" })}>
+                  Upload your dance
+                </Button>
+              }
+            />
+          </div>
+        )}
 
         {items.map((item, idx) => (
           <section
             key={item.mainVideo.id}
             data-feed-item
             data-idx={idx}
-            className="relative h-[100dvh] snap-start px-3 pb-28 pt-2"
+            className="relative h-[100dvh] snap-start px-3 pb-32 pt-2"
           >
             <DanceCard
               ref={(node) => {
@@ -214,16 +240,17 @@ function DanceFeed() {
               onDoubleTap={() => setPendingAction({ kind: "match", item })}
             />
 
-            <div className="pointer-events-none absolute inset-x-0 bottom-24 z-20 flex justify-center gap-3 px-4">
+            <div className="pointer-events-none absolute inset-x-0 bottom-28 z-20 flex items-center justify-center gap-3 px-5">
               <button
                 onClick={() => setPendingAction({ kind: "next", item })}
-                className="pointer-events-auto flex h-12 flex-1 items-center justify-center gap-2 rounded-full bg-white/90 text-sm font-semibold text-baila-ink backdrop-blur"
+                className="press pointer-events-auto flex h-14 w-14 items-center justify-center rounded-full border border-white/25 bg-white/20 text-white shadow-float backdrop-blur-md"
+                aria-label="Next dancer"
               >
-                <X className="h-4 w-4" /> Next
+                <X className="h-6 w-6" strokeWidth={2.5} />
               </button>
               <button
                 onClick={() => setPendingAction({ kind: "match", item })}
-                className="pointer-events-auto flex h-12 flex-1 items-center justify-center gap-2 rounded-full bg-baila-green text-sm font-semibold text-white"
+                className="press bg-gradient-baila pointer-events-auto flex h-14 flex-1 items-center justify-center gap-2 rounded-full text-[15px] font-bold tracking-[-0.01em] text-baila-ink shadow-glow"
               >
                 <Sparkles className="h-4 w-4" /> Dance with me
               </button>
@@ -232,115 +259,97 @@ function DanceFeed() {
         ))}
       </div>
 
-      <AnimatePresence>
+      <ModalSheet
+        open={!!pendingAction}
+        onClose={() => setPendingAction(null)}
+        label="Confirm action"
+      >
         {pendingAction && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-end justify-center bg-black/55 p-4"
-            onClick={() => setPendingAction(null)}
-          >
-            <motion.div
-              initial={{ y: 40 }}
-              animate={{ y: 0 }}
-              exit={{ y: 40 }}
-              onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-md rounded-3xl bg-baila-cream p-6"
+          <>
+            <span
+              className={`mb-4 flex h-14 w-14 items-center justify-center rounded-2xl ${
+                pendingAction.kind === "next"
+                  ? "bg-baila-ink/[0.06] text-baila-ink/60"
+                  : "bg-gradient-baila text-baila-ink shadow-glow"
+              }`}
             >
-              <h3 className="font-display text-xl">
-                {pendingAction.kind === "next"
-                  ? `Pass on ${pendingAction.item.profile.display_name ?? "this dancer"}?`
-                  : `Ask ${pendingAction.item.profile.display_name ?? "them"} to dance?`}
-              </h3>
-              <p className="mt-1 text-sm text-baila-ink/65">
-                {pendingAction.kind === "next"
-                  ? "We'll stop showing this dancer in your feed."
-                  : "If they say yes, you'll meet up IRL — no chat needed."}
-              </p>
-              <div className="mt-4 flex gap-2">
-                <button
-                  onClick={() => setPendingAction(null)}
-                  className="flex-1 rounded-full bg-baila-ink/10 py-3 text-sm font-semibold text-baila-ink"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={() => decide(pendingAction.kind, pendingAction.item)}
-                  className={`flex-1 rounded-full py-3 text-sm font-semibold text-white ${
-                    pendingAction.kind === "next" ? "bg-baila-ink" : "bg-baila-green"
-                  }`}
-                >
-                  {pendingAction.kind === "next" ? "Pass" : "Ask to dance"}
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
+              {pendingAction.kind === "next" ? <X className="h-6 w-6" /> : <Sparkles className="h-6 w-6" />}
+            </span>
+            <h3 className="font-display text-2xl font-semibold tracking-[-0.02em] text-baila-ink">
+              {pendingAction.kind === "next"
+                ? `Pass on ${pendingAction.item.profile.display_name ?? "this dancer"}?`
+                : `Ask ${pendingAction.item.profile.display_name ?? "them"} to dance?`}
+            </h3>
+            <p className="mt-2 text-sm leading-relaxed text-baila-ink/60">
+              {pendingAction.kind === "next"
+                ? "We'll stop showing this dancer in your feed."
+                : "If they say yes, you'll meet up IRL — no chat needed."}
+            </p>
+            <div className="mt-6 flex gap-2.5">
+              <Button variant="ghost" block className="h-12" onClick={() => setPendingAction(null)}>
+                Cancel
+              </Button>
+              <Button
+                variant={pendingAction.kind === "next" ? "ink" : "primary"}
+                block
+                className="h-12"
+                onClick={() => decide(pendingAction.kind, pendingAction.item)}
+              >
+                {pendingAction.kind === "next" ? "Pass" : "Ask to dance"}
+              </Button>
+            </div>
+          </>
         )}
-      </AnimatePresence>
+      </ModalSheet>
 
       <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
-        <SheetContent side="bottom" className="rounded-t-3xl">
+        <SheetContent side="bottom" className="rounded-t-[2rem] border-baila-ink/[0.07] bg-card">
           <SheetHeader>
-            <SheetTitle className="font-display text-2xl">Tune your feed</SheetTitle>
+            <SheetTitle className="font-display text-2xl tracking-[-0.02em]">Tune your feed</SheetTitle>
             <SheetDescription>Show dancers that match your vibe.</SheetDescription>
           </SheetHeader>
-          <div className="space-y-4 py-4">
+          <div className="space-y-5 py-5">
             <div>
-              <p className="mb-2 text-xs font-bold uppercase tracking-wider text-baila-ink/55">Styles</p>
+              <p className="mb-2.5 px-1 text-[11px] font-bold uppercase tracking-[0.12em] text-baila-ink/45">
+                Styles
+              </p>
               <div className="flex flex-wrap gap-2">
                 {DANCE_STYLES.map((s) => (
-                  <button
+                  <Chip
                     key={s}
+                    active={styleFilter.includes(s)}
                     onClick={() =>
                       setStyleFilter((prev) =>
                         prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s],
                       )
                     }
-                    className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
-                      styleFilter.includes(s)
-                        ? "bg-baila-yellow text-baila-ink"
-                        : "bg-baila-ink/5 text-baila-ink/70"
-                    }`}
                   >
                     {s}
-                  </button>
+                  </Chip>
                 ))}
               </div>
             </div>
-            <label className="flex items-center justify-between rounded-2xl bg-baila-ink/5 px-4 py-3 text-sm">
-              <span>
+            <div className="flex items-center justify-between rounded-2xl border border-baila-ink/[0.07] bg-white px-4 py-3.5 shadow-soft">
+              <span className="text-sm">
                 <span className="font-semibold text-baila-ink">My city only</span>
-                {me?.city && <span className="ml-2 text-baila-ink/55">({me.city})</span>}
+                {me?.city && <span className="ml-2 text-baila-ink/50">({me.city})</span>}
               </span>
-              <input type="checkbox" checked={cityOnly} onChange={(e) => setCityOnly(e.target.checked)} />
-            </label>
-            <button
+              <Toggle checked={cityOnly} onCheckedChange={setCityOnly} label="My city only" />
+            </div>
+            <Button
+              variant="ghost"
+              block
+              className="h-12"
               onClick={() => {
                 setStyleFilter([]);
                 setCityOnly(false);
               }}
-              className="w-full rounded-full bg-baila-ink/5 py-3 text-sm font-semibold text-baila-ink"
             >
-              Reset
-            </button>
+              <RotateCcw className="h-4 w-4" /> Reset filters
+            </Button>
           </div>
         </SheetContent>
       </Sheet>
-    </div>
-  );
-}
-
-function EmptyFeed() {
-  return (
-    <div className="flex h-full flex-col items-center justify-center gap-3 px-8 text-center">
-      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-baila-yellow">
-        <Sparkles className="h-6 w-6 text-baila-ink" />
-      </div>
-      <h2 className="font-display text-2xl text-baila-ink">No new dancers right now</h2>
-      <p className="text-sm text-baila-ink/65">
-        Come back soon — or upload a video so others find you first.
-      </p>
     </div>
   );
 }

@@ -12,6 +12,8 @@ import {
   Wand2,
   ChevronDown,
   Heart,
+  Clock,
+  Shuffle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -20,12 +22,28 @@ import { SignedImage } from "@/components/baila/SignedMedia";
 import { useSession } from "@/lib/auth";
 import { ICE_BREAKERS, type ConnectionRequest, type DanceVideo, type Profile } from "@/lib/baila-types";
 import { buildIcs, downloadIcs } from "@/lib/ics";
+import {
+  Button,
+  Card,
+  EmptyState,
+  Field,
+  Input,
+  Page,
+  PageHeader,
+  Pill,
+  Segmented,
+  Skeleton,
+} from "@/components/ui-baila";
 
 export const Route = createFileRoute("/_authenticated/app/date")({
   head: () => ({
     meta: [
       { title: "Date — Baila" },
       { name: "description", content: "Your dance partners and upcoming dance dates." },
+      { property: "og:title", content: "Date — Baila" },
+      { property: "og:description", content: "Your dance partners and upcoming dance dates." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: DatePage,
@@ -147,133 +165,170 @@ function DatePage() {
   };
 
   return (
-    <div className="px-5 pt-6">
-      <header className="mb-5">
-        <h1 className="font-display text-3xl font-semibold text-baila-ink">Date</h1>
-        <p className="mt-1 text-sm text-baila-ink/60">
-          Your dance partners and upcoming dance dates — meet on the floor, not in a chat.
-        </p>
-      </header>
+    <Page>
+      <PageHeader
+        title="Date"
+        subtitle="Your dance partners and upcoming dance dates — meet on the floor, not in a chat."
+      />
 
-      <div className="mb-5 flex rounded-full bg-baila-ink/5 p-1">
-        {TABS.map((t) => (
-          <button
-            key={t.key}
-            onClick={() => setTab(t.key)}
-            className={`flex-1 rounded-full px-4 py-2 text-sm font-semibold transition ${
-              tab === t.key ? "bg-baila-yellow text-baila-ink shadow-sm" : "text-baila-ink/60"
-            }`}
-          >
-            {t.label}
-            {grouped[t.key].length > 0 && <span className="ml-1.5 text-xs opacity-70">{grouped[t.key].length}</span>}
-          </button>
-        ))}
-      </div>
+      <Segmented
+        className="mb-5"
+        value={tab}
+        onChange={setTab}
+        options={TABS.map((t) => ({ key: t.key, label: t.label, count: grouped[t.key].length }))}
+      />
 
       {isLoading ? (
         <ul className="space-y-3">
           {[0, 1, 2].map((i) => (
-            <li key={i} className="h-20 animate-pulse rounded-2xl bg-baila-ink/5" />
+            <li key={i}>
+              <Card className="flex items-center gap-3.5 p-3.5">
+                <Skeleton className="h-[68px] w-[68px] rounded-2xl" />
+                <div className="flex-1 space-y-2">
+                  <Skeleton className="h-4 w-32 rounded-full" />
+                  <Skeleton className="h-3 w-20 rounded-full" />
+                </div>
+              </Card>
+            </li>
           ))}
         </ul>
       ) : visible.length === 0 ? (
-        <EmptyState tab={tab} />
+        <EmptyStateForTab tab={tab} />
       ) : (
         <ul className="space-y-3">
-          {visible.map((c) => {
+          {visible.map((c, i) => {
             const userIsFrom = c.request.from_user === user?.id;
             const danceAgain = userIsFrom ? c.request.again_from : c.request.again_to;
             const otherName = c.other.display_name || c.other.username || "Dancer";
             const open = expanded === c.request.id;
             return (
-              <li key={c.request.id} className="overflow-hidden rounded-2xl border border-baila-ink/10 bg-white">
-                <div className="flex items-center gap-3 p-3">
-                  <div className="relative h-16 w-16 flex-shrink-0 overflow-hidden rounded-xl bg-baila-ink">
-                    {c.mainVideo ? (
-                      <SignedImage
-                        bucket="dance-videos"
-                        path={c.mainVideo.poster_url ?? c.mainVideo.storage_path}
-                        alt={`${otherName} dance video`}
-                        className="absolute inset-0 h-full w-full object-cover"
-                      />
-                    ) : (
-                      <div className="absolute inset-0 flex items-center justify-center bg-baila-yellow-soft text-baila-ink/40">
-                        <Music2 className="h-5 w-5" />
+              <li key={c.request.id} className="animate-rise" style={{ animationDelay: `${i * 45}ms` }}>
+                <Card className="overflow-hidden">
+                  <div className="flex items-center gap-3.5 p-3.5">
+                    <div className="relative h-[68px] w-[68px] shrink-0 overflow-hidden rounded-2xl bg-baila-ink shadow-soft">
+                      {c.mainVideo ? (
+                        <SignedImage
+                          bucket="dance-videos"
+                          path={c.mainVideo.poster_url ?? c.mainVideo.storage_path}
+                          alt={`${otherName} dance video`}
+                          className="absolute inset-0 h-full w-full object-cover"
+                        />
+                      ) : (
+                        <div className="absolute inset-0 flex items-center justify-center bg-baila-yellow-soft text-baila-ink/35">
+                          <Music2 className="h-5 w-5" />
+                        </div>
+                      )}
+                      <span className="absolute inset-0 flex items-center justify-center">
+                        <span className="flex h-7 w-7 items-center justify-center rounded-full border border-white/25 bg-white/20 text-white backdrop-blur-md">
+                          <Play className="h-3 w-3" fill="currentColor" />
+                        </span>
+                      </span>
+                    </div>
+
+                    <div className="min-w-0 flex-1">
+                      <div className="flex min-w-0 items-center gap-2">
+                        <p className="truncate font-display text-lg font-semibold tracking-[-0.02em] text-baila-ink">
+                          {otherName}
+                        </p>
+                        {c.other.dance_styles[0] && <Pill>{c.other.dance_styles[0]}</Pill>}
+                      </div>
+                      <div className="mt-1 flex flex-wrap items-center gap-x-2.5 gap-y-1 text-xs text-baila-ink/55">
+                        {c.other.city && (
+                          <span className="flex items-center gap-1">
+                            <MapPin className="h-3 w-3" /> {c.other.city}
+                          </span>
+                        )}
+                        <StatusTag status={c.request.status} direction={c.direction} />
+                      </div>
+                    </div>
+
+                    {c.request.status === "pending" && c.direction === "in" && (
+                      <div className="flex shrink-0 gap-2">
+                        <button
+                          onClick={() => decline(c.request.id)}
+                          aria-label="Pass"
+                          className="press flex h-11 w-11 items-center justify-center rounded-full bg-baila-ink/[0.06] text-baila-ink/60"
+                        >
+                          <X className="h-5 w-5" />
+                        </button>
+                        <button
+                          onClick={() => accept(c.request.id)}
+                          aria-label="Match"
+                          className="press flex h-11 w-11 items-center justify-center rounded-full bg-baila-green text-white shadow-soft"
+                        >
+                          <Check className="h-5 w-5" strokeWidth={2.5} />
+                        </button>
                       </div>
                     )}
-                    <span className="absolute inset-0 flex items-center justify-center">
-                      <span className="flex h-6 w-6 items-center justify-center rounded-full bg-white/25 text-white backdrop-blur">
-                        <Play className="h-3 w-3" fill="currentColor" />
-                      </span>
-                    </span>
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                      <p className="truncate font-display text-lg font-semibold text-baila-ink">{otherName}</p>
-                      {c.other.dance_styles[0] && (
-                        <span className="rounded-full bg-baila-yellow px-2 py-0.5 text-[10px] font-bold text-baila-ink">
-                          {c.other.dance_styles[0]}
-                        </span>
-                      )}
-                    </div>
-                    <div className="mt-0.5 flex items-center gap-1 text-xs text-baila-ink/60">
-                      {c.other.city && (
-                        <>
-                          <MapPin className="h-3 w-3" /> {c.other.city}
-                        </>
-                      )}
-                      {c.request.status === "pending" && c.direction === "out" && (
-                        <span className="ml-2 italic">· awaiting reply</span>
-                      )}
-                    </div>
-                  </div>
-                  {c.request.status === "pending" && c.direction === "in" && (
-                    <div className="flex gap-2">
-                      <button onClick={() => decline(c.request.id)} aria-label="Pass" className="flex h-10 w-10 items-center justify-center rounded-full bg-baila-ink/5 text-baila-ink/70">
-                        <X className="h-5 w-5" />
+                    {(c.request.status === "accepted" || c.request.status === "declined") && (
+                      <button
+                        onClick={() => toggleAgain(c)}
+                        aria-label="Dance again"
+                        aria-pressed={!!danceAgain}
+                        className={`press flex h-10 shrink-0 items-center gap-1.5 rounded-full px-3.5 text-xs font-bold ${
+                          danceAgain
+                            ? "bg-gradient-baila text-baila-ink shadow-soft"
+                            : "bg-baila-ink/[0.06] text-baila-ink/60"
+                        }`}
+                      >
+                        <Star className="h-4 w-4" fill={danceAgain ? "currentColor" : "none"} />
+                        Again
                       </button>
-                      <button onClick={() => accept(c.request.id)} aria-label="Match" className="flex h-10 w-10 items-center justify-center rounded-full bg-baila-green text-white">
-                        <Check className="h-5 w-5" />
-                      </button>
-                    </div>
-                  )}
-                  {(c.request.status === "accepted" || c.request.status === "declined") && (
-                    <button
-                      onClick={() => toggleAgain(c)}
-                      aria-label="Dance again"
-                      className={`flex h-10 items-center gap-1 rounded-full px-3 text-sm font-semibold transition ${
-                        danceAgain ? "bg-baila-yellow text-baila-ink" : "bg-baila-ink/5 text-baila-ink/70"
-                      }`}
-                    >
-                      <Star className="h-4 w-4" fill={danceAgain ? "currentColor" : "none"} />
-                      Again
-                    </button>
-                  )}
-                </div>
+                    )}
+                  </div>
 
-                {c.request.status === "accepted" && (
-                  <>
-                    <button
-                      onClick={() => setExpanded(open ? null : c.request.id)}
-                      className="flex w-full items-center justify-between border-t border-baila-ink/5 px-4 py-2.5 text-xs font-semibold text-baila-ink/70"
-                      aria-expanded={open}
-                    >
-                      <span className="flex items-center gap-1.5">
-                        <Sparkles className="h-3.5 w-3.5" /> Plan your dance date
-                      </span>
-                      <ChevronDown className={`h-4 w-4 transition ${open ? "rotate-180" : ""}`} />
-                    </button>
-                    {open && <MeetIRLPanel c={c} />}
-                  </>
-                )}
+                  {c.request.status === "accepted" && (
+                    <>
+                      <button
+                        onClick={() => setExpanded(open ? null : c.request.id)}
+                        className="press flex w-full items-center justify-between border-t border-baila-ink/[0.06] px-4 py-3 text-xs font-bold uppercase tracking-[0.08em] text-baila-ink/55"
+                        aria-expanded={open}
+                      >
+                        <span className="flex items-center gap-1.5">
+                          <Sparkles className="h-3.5 w-3.5" /> Plan your dance date
+                        </span>
+                        <ChevronDown
+                          className={`h-4 w-4 transition-transform duration-300 ${open ? "rotate-180" : ""}`}
+                        />
+                      </button>
+                      {open && <MeetIRLPanel c={c} />}
+                    </>
+                  )}
+                </Card>
               </li>
             );
           })}
         </ul>
       )}
-    </div>
+    </Page>
   );
 }
+
+function StatusTag({
+  status,
+  direction,
+}: {
+  status: ConnectionRequest["status"];
+  direction: "in" | "out";
+}) {
+  if (status === "pending") {
+    return direction === "out" ? (
+      <Pill tone="muted">
+        <Clock className="h-2.5 w-2.5" /> Awaiting reply
+      </Pill>
+    ) : (
+      <Pill tone="soft">Wants to dance</Pill>
+    );
+  }
+  if (status === "accepted") return <Pill tone="success">Matched</Pill>;
+  return <Pill tone="muted">Passed</Pill>;
+}
+
+const SPOT_IDEAS = [
+  { title: "A social night", body: "Live DJ, open floor, zero pressure." },
+  { title: "A studio class", body: "Learn something new together." },
+  { title: "An outdoor session", body: "Park, plaza or rooftop — bring a speaker." },
+];
 
 function MeetIRLPanel({ c }: { c: EnrichedConnection }) {
   const otherName = c.other.display_name || c.other.username || "your dance partner";
@@ -304,58 +359,74 @@ function MeetIRLPanel({ c }: { c: EnrichedConnection }) {
   };
 
   return (
-    <div className="border-t border-baila-ink/5 bg-baila-yellow-soft/40 p-4">
-      <div className="flex items-start gap-2 rounded-2xl bg-white/80 p-3">
-        <Wand2 className="mt-0.5 h-4 w-4 text-baila-ink/60" />
-        <div className="flex-1 text-sm text-baila-ink/85">{iceBreaker}</div>
+    <div className="animate-rise bg-gradient-soft border-t border-baila-ink/[0.06] p-4">
+      <div className="flex items-start gap-2.5 rounded-2xl border border-white/70 bg-white/85 p-3.5 shadow-soft">
+        <Wand2 className="mt-0.5 h-4 w-4 shrink-0 text-baila-ink/45" />
+        <div className="min-w-0 flex-1 text-sm leading-relaxed text-baila-ink/85">{iceBreaker}</div>
         <button
           onClick={() => setIceBreaker(ICE_BREAKERS[Math.floor(Math.random() * ICE_BREAKERS.length)])}
-          className="text-[11px] font-semibold uppercase tracking-wider text-baila-ink/55"
+          className="press flex shrink-0 items-center gap-1 rounded-full bg-baila-ink/[0.06] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-baila-ink/55"
         >
-          Shuffle
+          <Shuffle className="h-3 w-3" /> Shuffle
         </button>
       </div>
-      <div className="mt-3 grid gap-2">
-        <label className="text-[11px] font-bold uppercase tracking-wider text-baila-ink/55">When</label>
-        <input
-          type="datetime-local"
-          value={when}
-          onChange={(e) => setWhen(e.target.value)}
-          className="rounded-xl border border-baila-ink/15 bg-white px-3 py-2 text-sm"
-        />
-        <label className="mt-1 text-[11px] font-bold uppercase tracking-wider text-baila-ink/55">Where</label>
-        <input
-          value={where}
-          onChange={(e) => setWhere(e.target.value)}
-          placeholder={c.other.city ? `Studio or social in ${c.other.city}` : "Studio or social"}
-          className="rounded-xl border border-baila-ink/15 bg-white px-3 py-2 text-sm"
-        />
+
+      <p className="mb-2 mt-4 px-1 text-[11px] font-bold uppercase tracking-[0.12em] text-baila-ink/45">
+        Spot ideas
+      </p>
+      <div className="no-scrollbar -mx-4 flex gap-2.5 overflow-x-auto px-4 pb-1">
+        {SPOT_IDEAS.map((s) => (
+          <button
+            key={s.title}
+            onClick={() => setWhere(s.title)}
+            className={`press w-40 shrink-0 rounded-2xl border p-3 text-left shadow-soft ${
+              where === s.title ? "border-baila-yellow bg-white" : "border-white/70 bg-white/85"
+            }`}
+          >
+            <p className="font-display text-sm font-semibold text-baila-ink">{s.title}</p>
+            <p className="mt-1 text-[11px] leading-snug text-baila-ink/55">{s.body}</p>
+          </button>
+        ))}
       </div>
-      <button
-        onClick={exportIcs}
-        className="mt-3 flex w-full items-center justify-center gap-2 rounded-full bg-baila-ink py-2.5 text-sm font-semibold text-baila-cream"
-      >
+
+      <div className="mt-4 grid gap-3">
+        <Field label="When">
+          <Input type="datetime-local" value={when} onChange={(e) => setWhen(e.target.value)} className="py-3" />
+        </Field>
+        <Field label="Where">
+          <Input
+            value={where}
+            onChange={(e) => setWhere(e.target.value)}
+            placeholder={c.other.city ? `Studio or social in ${c.other.city}` : "Studio or social"}
+            className="py-3"
+          />
+        </Field>
+      </div>
+
+      <Button variant="ink" block className="mt-4 h-12" onClick={exportIcs}>
         <CalendarPlus className="h-4 w-4" /> Add to calendar
-      </button>
-      <p className="mt-2 text-center text-[11px] text-baila-ink/55">
+      </Button>
+      <p className="mt-2.5 text-center text-[11px] text-baila-ink/50">
         No chat needed — show up, dance, see what happens.
       </p>
     </div>
   );
 }
 
-function EmptyState({ tab }: { tab: TabKey }) {
+function EmptyStateForTab({ tab }: { tab: TabKey }) {
   const copy = {
-    requests: "No dance requests yet. Open Dance and ask someone to share a floor.",
-    matches: "No matches yet. When someone says yes, you'll plan your dance date here.",
-    past: "Dances you've passed on will appear here.",
+    requests: {
+      title: "No dance requests yet",
+      body: "Open Dance and ask someone to share a floor with you.",
+    },
+    matches: {
+      title: "No matches yet",
+      body: "When someone says yes, you'll plan your dance date right here.",
+    },
+    past: {
+      title: "Nothing in the past",
+      body: "Dancers you've passed on will show up here.",
+    },
   }[tab];
-  return (
-    <div className="flex flex-col items-center gap-3 rounded-3xl border border-dashed border-baila-ink/15 bg-white px-6 py-12 text-center">
-      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-baila-yellow">
-        <Heart className="h-5 w-5 text-baila-ink" />
-      </div>
-      <p className="max-w-xs text-sm text-baila-ink/65">{copy}</p>
-    </div>
-  );
+  return <EmptyState icon={<Heart className="h-6 w-6" />} title={copy.title} body={copy.body} />;
 }
