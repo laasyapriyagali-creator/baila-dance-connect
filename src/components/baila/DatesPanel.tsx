@@ -3,7 +3,7 @@ import { CalendarPlus, MapPin, Trash2, Heart, Download } from "lucide-react";
 import { toast } from "sonner";
 import { bailaStore, ICE_BREAKERS, type DanceDate } from "@/lib/baila-local";
 import { useBaila } from "@/lib/use-baila";
-import { downloadIcs } from "@/lib/ics";
+import { buildIcs, downloadIcs } from "@/lib/ics";
 
 export function DatesPanel() {
   const { dates, reels } = useBaila();
@@ -130,12 +130,15 @@ function Planner({ date }: { date: DanceDate }) {
         <button
           onClick={() => {
             if (!date.when) return toast.error("Save a time first");
-            downloadIcs({
-              title: `Dance date with ${date.dancer}`,
-              start: new Date(date.when),
-              location: date.place,
-              description: date.note,
-            });
+            downloadIcs(
+              `baila-${date.dancer.toLowerCase().replace(/\s+/g, "-")}`,
+              buildIcs({
+                title: `Dance date with ${date.dancer}`,
+                start: new Date(date.when),
+                location: date.place,
+                description: date.note,
+              }),
+            );
           }}
           aria-label="Add to calendar"
           className="flex h-12 w-12 items-center justify-center rounded-full bg-baila-ink/10 text-baila-ink"
