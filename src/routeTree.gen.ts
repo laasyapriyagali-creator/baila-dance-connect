@@ -9,38 +9,145 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SettingsIndexRouteImport } from './routes/settings.index'
+import { Route as SettingsSafetyRouteImport } from './routes/settings.safety'
+import { Route as SettingsPrivacyRouteImport } from './routes/settings.privacy'
+import { Route as SettingsNotificationsRouteImport } from './routes/settings.notifications'
+import { Route as SettingsDiscoveryRouteImport } from './routes/settings.discovery'
+import { Route as SettingsAccountRouteImport } from './routes/settings.account'
+import { Route as LegalDocRouteImport } from './routes/legal.$doc'
 
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SettingsIndexRoute = SettingsIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => SettingsRoute,
+} as any)
+const SettingsSafetyRoute = SettingsSafetyRouteImport.update({
+  id: '/safety',
+  path: '/safety',
+  getParentRoute: () => SettingsRoute,
+} as any)
+const SettingsPrivacyRoute = SettingsPrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => SettingsRoute,
+} as any)
+const SettingsNotificationsRoute = SettingsNotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => SettingsRoute,
+} as any)
+const SettingsDiscoveryRoute = SettingsDiscoveryRouteImport.update({
+  id: '/discovery',
+  path: '/discovery',
+  getParentRoute: () => SettingsRoute,
+} as any)
+const SettingsAccountRoute = SettingsAccountRouteImport.update({
+  id: '/account',
+  path: '/account',
+  getParentRoute: () => SettingsRoute,
+} as any)
+const LegalDocRoute = LegalDocRouteImport.update({
+  id: '/legal/$doc',
+  path: '/legal/$doc',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/settings': typeof SettingsRouteWithChildren
+  '/legal/$doc': typeof LegalDocRoute
+  '/settings/account': typeof SettingsAccountRoute
+  '/settings/discovery': typeof SettingsDiscoveryRoute
+  '/settings/notifications': typeof SettingsNotificationsRoute
+  '/settings/privacy': typeof SettingsPrivacyRoute
+  '/settings/safety': typeof SettingsSafetyRoute
+  '/settings/': typeof SettingsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/legal/$doc': typeof LegalDocRoute
+  '/settings/account': typeof SettingsAccountRoute
+  '/settings/discovery': typeof SettingsDiscoveryRoute
+  '/settings/notifications': typeof SettingsNotificationsRoute
+  '/settings/privacy': typeof SettingsPrivacyRoute
+  '/settings/safety': typeof SettingsSafetyRoute
+  '/settings': typeof SettingsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/settings': typeof SettingsRouteWithChildren
+  '/legal/$doc': typeof LegalDocRoute
+  '/settings/account': typeof SettingsAccountRoute
+  '/settings/discovery': typeof SettingsDiscoveryRoute
+  '/settings/notifications': typeof SettingsNotificationsRoute
+  '/settings/privacy': typeof SettingsPrivacyRoute
+  '/settings/safety': typeof SettingsSafetyRoute
+  '/settings/': typeof SettingsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/settings'
+    | '/legal/$doc'
+    | '/settings/account'
+    | '/settings/discovery'
+    | '/settings/notifications'
+    | '/settings/privacy'
+    | '/settings/safety'
+    | '/settings/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/legal/$doc'
+    | '/settings/account'
+    | '/settings/discovery'
+    | '/settings/notifications'
+    | '/settings/privacy'
+    | '/settings/safety'
+    | '/settings'
+  id:
+    | '__root__'
+    | '/'
+    | '/settings'
+    | '/legal/$doc'
+    | '/settings/account'
+    | '/settings/discovery'
+    | '/settings/notifications'
+    | '/settings/privacy'
+    | '/settings/safety'
+    | '/settings/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  SettingsRoute: typeof SettingsRouteWithChildren
+  LegalDocRoute: typeof LegalDocRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,22 +155,85 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/settings/': {
+      id: '/settings/'
+      path: '/'
+      fullPath: '/settings/'
+      preLoaderRoute: typeof SettingsIndexRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/settings/safety': {
+      id: '/settings/safety'
+      path: '/safety'
+      fullPath: '/settings/safety'
+      preLoaderRoute: typeof SettingsSafetyRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/settings/privacy': {
+      id: '/settings/privacy'
+      path: '/privacy'
+      fullPath: '/settings/privacy'
+      preLoaderRoute: typeof SettingsPrivacyRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/settings/notifications': {
+      id: '/settings/notifications'
+      path: '/notifications'
+      fullPath: '/settings/notifications'
+      preLoaderRoute: typeof SettingsNotificationsRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/settings/discovery': {
+      id: '/settings/discovery'
+      path: '/discovery'
+      fullPath: '/settings/discovery'
+      preLoaderRoute: typeof SettingsDiscoveryRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/settings/account': {
+      id: '/settings/account'
+      path: '/account'
+      fullPath: '/settings/account'
+      preLoaderRoute: typeof SettingsAccountRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/legal/$doc': {
+      id: '/legal/$doc'
+      path: '/legal/$doc'
+      fullPath: '/legal/$doc'
+      preLoaderRoute: typeof LegalDocRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
+interface SettingsRouteChildren {
+  SettingsAccountRoute: typeof SettingsAccountRoute
+  SettingsDiscoveryRoute: typeof SettingsDiscoveryRoute
+  SettingsNotificationsRoute: typeof SettingsNotificationsRoute
+  SettingsPrivacyRoute: typeof SettingsPrivacyRoute
+  SettingsSafetyRoute: typeof SettingsSafetyRoute
+  SettingsIndexRoute: typeof SettingsIndexRoute
+}
+
+const SettingsRouteChildren: SettingsRouteChildren = {
+  SettingsAccountRoute: SettingsAccountRoute,
+  SettingsDiscoveryRoute: SettingsDiscoveryRoute,
+  SettingsNotificationsRoute: SettingsNotificationsRoute,
+  SettingsPrivacyRoute: SettingsPrivacyRoute,
+  SettingsSafetyRoute: SettingsSafetyRoute,
+  SettingsIndexRoute: SettingsIndexRoute,
+}
+
+const SettingsRouteWithChildren = SettingsRoute._addFileChildren(
+  SettingsRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  SettingsRoute: SettingsRouteWithChildren,
+  LegalDocRoute: LegalDocRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

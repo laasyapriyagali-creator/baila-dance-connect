@@ -6,12 +6,14 @@ export type Experience = "Beginner" | "Intermediate" | "Advanced" | "Pro";
 
 export type LocalProfile = {
   name: string;
+  age: number | null;
   city: string;
   bio: string;
   styles: string[];
   experience: Experience;
   avatar: string | null; // data URL
 };
+
 
 export type Reel = {
   id: string;
@@ -34,12 +36,67 @@ export type DanceDate = {
   createdAt: string;
 };
 
+export type BailaSettings = {
+  paused: boolean;
+  discovery: {
+    styles: string[];
+    radiusKm: number;
+    ageMin: number;
+    ageMax: number;
+    visibleTo: "everyone" | "invited";
+  };
+  privacy: {
+    hideAge: boolean;
+    cityOnly: boolean;
+    reelsVisibleTo: "everyone" | "matches";
+    featured: boolean;
+    analytics: boolean;
+  };
+  safety: {
+    blurExplicit: boolean;
+    safetyChecklist: boolean;
+    shareDate: boolean;
+    emergencyName: string;
+    emergencyPhone: string;
+  };
+  notifications: {
+    muteAll: boolean;
+    invites: boolean;
+    responses: boolean;
+    reminders: boolean;
+    goAgain: boolean;
+  };
+};
+
 export type BailaState = {
   profile: LocalProfile;
   reels: Reel[];
   dates: DanceDate[];
   passed: string[];
+  blocked: string[]; // dancer names blocked on this device
+  settings: BailaSettings;
 };
+
+export const DEFAULT_SETTINGS: BailaSettings = {
+  paused: false,
+  discovery: { styles: [], radiusKm: 25, ageMin: 18, ageMax: 60, visibleTo: "everyone" },
+  privacy: {
+    hideAge: false,
+    cityOnly: true,
+    reelsVisibleTo: "everyone",
+    featured: true,
+    analytics: false,
+  },
+  safety: {
+    blurExplicit: true,
+    safetyChecklist: true,
+    shareDate: false,
+    emergencyName: "",
+    emergencyPhone: "",
+  },
+  notifications: { muteAll: false, invites: true, responses: true, reminders: true, goAgain: true },
+};
+
 
 export const DANCE_STYLES = [
   "Freestyle",
@@ -66,10 +123,20 @@ export const ICE_BREAKERS = [
 const KEY = "baila.mvp.v1";
 
 const EMPTY: BailaState = {
-  profile: { name: "", city: "", bio: "", styles: [], experience: "Beginner", avatar: null },
+  profile: {
+    name: "",
+    age: null,
+    city: "",
+    bio: "",
+    styles: [],
+    experience: "Beginner",
+    avatar: null,
+  },
   reels: [],
   dates: [],
   passed: [],
+  blocked: [],
+  settings: DEFAULT_SETTINGS,
 };
 
 let state: BailaState = EMPTY;
@@ -82,10 +149,27 @@ function load(): BailaState {
   if (typeof window === "undefined") return state;
   try {
     const raw = window.localStorage.getItem(KEY);
-    if (raw) state = { ...EMPTY, ...(JSON.parse(raw) as BailaState) };
+    if (raw) {
+      const parsed = JSON.parse(raw) as Partial<BailaState>;
+      const s = parsed.settings;
+      state = {
+        ...EMPTY,
+        ...parsed,
+        profile: { ...EMPTY.profile, ...(parsed.profile ?? {}) },
+        settings: {
+          ...DEFAULT_SETTINGS,
+          ...(s ?? {}),
+          discovery: { ...DEFAULT_SETTINGS.discovery, ...(s?.discovery ?? {}) },
+          privacy: { ...DEFAULT_SETTINGS.privacy, ...(s?.privacy ?? {}) },
+          safety: { ...DEFAULT_SETTINGS.safety, ...(s?.safety ?? {}) },
+          notifications: { ...DEFAULT_SETTINGS.notifications, ...(s?.notifications ?? {}) },
+        },
+      };
+    }
   } catch {
     state = EMPTY;
   }
+
   return state;
 }
 
@@ -112,7 +196,47 @@ export const bailaStore = {
   getServer(): BailaState {
     return EMPTY;
   },
+  patchSettings(patch: Partial<BailaSettings>) {
+    const s = load();
+    commit({ ...s, settings: { ...s.settings, ...patch } });
+  },
+  patchSection<K extends "discovery" | "privacy" | "safety" | "notifications">(
+    section: K,
+    patch: Partial<BailaSettings[K]>,
+  ) {
+    const s = load();
+    commit({
+      ...s,
+      settings: { ...s.settings, [section]: { ...s.settings[section], ...patch } },
+    });
+  },
+  block(dancer: string) {
+    const s = load();
+    const name = dancer.trim();
+    if (!name || s.blocked.some((b) => b.toLowerCase() === name.toLowerCase())) return;
+    commit({ ...s, blocked: [...s.blocked, name] });
+  },
+  unblock(dancer: string) {
+    const s = load();
+    commit({ ...s, blocked: s.blocked.filter((b) => b !== dancer) });
+  },
+  exportData(): string {
+    return JSON.stringify(load(), null, 2);
+  },
+  async eraseEverything() {
+    const s = load();
+    await Promise.all(s.reels.map((r) => deleteVideo(r.id)));
+    if (typeof window !== "undefined") {
+      try {
+        window.localStorage.removeItem(KEY);
+      } catch {
+        // ignore
+      }
+    }
+    commit({ ...EMPTY, settings: DEFAULT_SETTINGS });
+  },
   saveProfile(patch: Partial<LocalProfile>) {
+
     const s = load();
     commit({ ...s, profile: { ...s.profile, ...patch } });
   },

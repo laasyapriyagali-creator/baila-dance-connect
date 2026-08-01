@@ -6,23 +6,29 @@ import { bailaStore, DANCE_STYLES } from "@/lib/baila-local";
 import { useBaila } from "@/lib/use-baila";
 
 export function DanceFeed({ onAddReel }: { onAddReel: () => void }) {
-  const { reels, dates, passed } = useBaila();
-  const [styleFilter, setStyleFilter] = useState<string[]>([]);
+  const { reels, dates, passed, blocked, settings } = useBaila();
+  const [styleFilter, setStyleFilter] = useState<string[]>(settings.discovery.styles);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const [activeIdx, setActiveIdx] = useState(0);
 
   const invited = useMemo(() => new Set(dates.map((d) => d.reelId)), [dates]);
+  const blockedSet = useMemo(
+    () => new Set(blocked.map((b) => b.toLowerCase())),
+    [blocked],
+  );
   const items = useMemo(
     () =>
       reels.filter(
         (r) =>
           !passed.includes(r.id) &&
           !invited.has(r.id) &&
+          !blockedSet.has(r.dancer.trim().toLowerCase()) &&
           (styleFilter.length === 0 || styleFilter.includes(r.style)),
       ),
-    [reels, passed, invited, styleFilter],
+    [reels, passed, invited, blockedSet, styleFilter],
   );
+
 
   useEffect(() => {
     const root = containerRef.current;
