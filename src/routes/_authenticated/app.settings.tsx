@@ -65,11 +65,14 @@ function SettingsPage() {
   return (
     <Page className="pb-10">
       <div className="mb-6 flex items-center gap-3">
-        <Link to="/app/profile" aria-label="Back">
-          <IconButton variant="secondary" asChild={undefined} tabIndex={-1}>
-            <ArrowLeft className="h-5 w-5" />
-          </IconButton>
+        <Link
+          to="/app/profile"
+          aria-label="Back"
+          className="press flex h-11 w-11 items-center justify-center rounded-full border border-baila-ink/10 bg-white text-baila-ink shadow-soft"
+        >
+          <ArrowLeft className="h-5 w-5" />
         </Link>
+
         <h1 className="font-display text-[2rem] font-semibold tracking-[-0.03em] text-baila-ink">Settings</h1>
       </div>
 
