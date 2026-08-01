@@ -196,7 +196,47 @@ export const bailaStore = {
   getServer(): BailaState {
     return EMPTY;
   },
+  patchSettings(patch: Partial<BailaSettings>) {
+    const s = load();
+    commit({ ...s, settings: { ...s.settings, ...patch } });
+  },
+  patchSection<K extends "discovery" | "privacy" | "safety" | "notifications">(
+    section: K,
+    patch: Partial<BailaSettings[K]>,
+  ) {
+    const s = load();
+    commit({
+      ...s,
+      settings: { ...s.settings, [section]: { ...s.settings[section], ...patch } },
+    });
+  },
+  block(dancer: string) {
+    const s = load();
+    const name = dancer.trim();
+    if (!name || s.blocked.some((b) => b.toLowerCase() === name.toLowerCase())) return;
+    commit({ ...s, blocked: [...s.blocked, name] });
+  },
+  unblock(dancer: string) {
+    const s = load();
+    commit({ ...s, blocked: s.blocked.filter((b) => b !== dancer) });
+  },
+  exportData(): string {
+    return JSON.stringify(load(), null, 2);
+  },
+  async eraseEverything() {
+    const s = load();
+    await Promise.all(s.reels.map((r) => deleteVideo(r.id)));
+    if (typeof window !== "undefined") {
+      try {
+        window.localStorage.removeItem(KEY);
+      } catch {
+        // ignore
+      }
+    }
+    commit({ ...EMPTY, settings: DEFAULT_SETTINGS });
+  },
   saveProfile(patch: Partial<LocalProfile>) {
+
     const s = load();
     commit({ ...s, profile: { ...s.profile, ...patch } });
   },
