@@ -36,12 +36,67 @@ export type DanceDate = {
   createdAt: string;
 };
 
+export type BailaSettings = {
+  paused: boolean;
+  discovery: {
+    styles: string[];
+    radiusKm: number;
+    ageMin: number;
+    ageMax: number;
+    visibleTo: "everyone" | "invited";
+  };
+  privacy: {
+    hideAge: boolean;
+    cityOnly: boolean;
+    reelsVisibleTo: "everyone" | "matches";
+    featured: boolean;
+    analytics: boolean;
+  };
+  safety: {
+    blurExplicit: boolean;
+    safetyChecklist: boolean;
+    shareDate: boolean;
+    emergencyName: string;
+    emergencyPhone: string;
+  };
+  notifications: {
+    muteAll: boolean;
+    invites: boolean;
+    responses: boolean;
+    reminders: boolean;
+    goAgain: boolean;
+  };
+};
+
 export type BailaState = {
   profile: LocalProfile;
   reels: Reel[];
   dates: DanceDate[];
   passed: string[];
+  blocked: string[]; // dancer names blocked on this device
+  settings: BailaSettings;
 };
+
+export const DEFAULT_SETTINGS: BailaSettings = {
+  paused: false,
+  discovery: { styles: [], radiusKm: 25, ageMin: 18, ageMax: 60, visibleTo: "everyone" },
+  privacy: {
+    hideAge: false,
+    cityOnly: true,
+    reelsVisibleTo: "everyone",
+    featured: true,
+    analytics: false,
+  },
+  safety: {
+    blurExplicit: true,
+    safetyChecklist: true,
+    shareDate: false,
+    emergencyName: "",
+    emergencyPhone: "",
+  },
+  notifications: { muteAll: false, invites: true, responses: true, reminders: true, goAgain: true },
+};
+
 
 export const DANCE_STYLES = [
   "Freestyle",
