@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SettingsIndexRouteImport } from './routes/settings.index'
+import { Route as SettingsSafetyRouteImport } from './routes/settings.safety'
 import { Route as SettingsPrivacyRouteImport } from './routes/settings.privacy'
 import { Route as SettingsDiscoveryRouteImport } from './routes/settings.discovery'
 import { Route as SettingsAccountRouteImport } from './routes/settings.account'
@@ -29,6 +30,11 @@ const IndexRoute = IndexRouteImport.update({
 const SettingsIndexRoute = SettingsIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => SettingsRoute,
+} as any)
+const SettingsSafetyRoute = SettingsSafetyRouteImport.update({
+  id: '/safety',
+  path: '/safety',
   getParentRoute: () => SettingsRoute,
 } as any)
 const SettingsPrivacyRoute = SettingsPrivacyRouteImport.update({
@@ -53,6 +59,7 @@ export interface FileRoutesByFullPath {
   '/settings/account': typeof SettingsAccountRoute
   '/settings/discovery': typeof SettingsDiscoveryRoute
   '/settings/privacy': typeof SettingsPrivacyRoute
+  '/settings/safety': typeof SettingsSafetyRoute
   '/settings/': typeof SettingsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -60,6 +67,7 @@ export interface FileRoutesByTo {
   '/settings/account': typeof SettingsAccountRoute
   '/settings/discovery': typeof SettingsDiscoveryRoute
   '/settings/privacy': typeof SettingsPrivacyRoute
+  '/settings/safety': typeof SettingsSafetyRoute
   '/settings': typeof SettingsIndexRoute
 }
 export interface FileRoutesById {
@@ -69,6 +77,7 @@ export interface FileRoutesById {
   '/settings/account': typeof SettingsAccountRoute
   '/settings/discovery': typeof SettingsDiscoveryRoute
   '/settings/privacy': typeof SettingsPrivacyRoute
+  '/settings/safety': typeof SettingsSafetyRoute
   '/settings/': typeof SettingsIndexRoute
 }
 export interface FileRouteTypes {
@@ -79,6 +88,7 @@ export interface FileRouteTypes {
     | '/settings/account'
     | '/settings/discovery'
     | '/settings/privacy'
+    | '/settings/safety'
     | '/settings/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -86,6 +96,7 @@ export interface FileRouteTypes {
     | '/settings/account'
     | '/settings/discovery'
     | '/settings/privacy'
+    | '/settings/safety'
     | '/settings'
   id:
     | '__root__'
@@ -94,6 +105,7 @@ export interface FileRouteTypes {
     | '/settings/account'
     | '/settings/discovery'
     | '/settings/privacy'
+    | '/settings/safety'
     | '/settings/'
   fileRoutesById: FileRoutesById
 }
@@ -125,6 +137,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsIndexRouteImport
       parentRoute: typeof SettingsRoute
     }
+    '/settings/safety': {
+      id: '/settings/safety'
+      path: '/safety'
+      fullPath: '/settings/safety'
+      preLoaderRoute: typeof SettingsSafetyRouteImport
+      parentRoute: typeof SettingsRoute
+    }
     '/settings/privacy': {
       id: '/settings/privacy'
       path: '/privacy'
@@ -153,6 +172,7 @@ interface SettingsRouteChildren {
   SettingsAccountRoute: typeof SettingsAccountRoute
   SettingsDiscoveryRoute: typeof SettingsDiscoveryRoute
   SettingsPrivacyRoute: typeof SettingsPrivacyRoute
+  SettingsSafetyRoute: typeof SettingsSafetyRoute
   SettingsIndexRoute: typeof SettingsIndexRoute
 }
 
@@ -160,6 +180,7 @@ const SettingsRouteChildren: SettingsRouteChildren = {
   SettingsAccountRoute: SettingsAccountRoute,
   SettingsDiscoveryRoute: SettingsDiscoveryRoute,
   SettingsPrivacyRoute: SettingsPrivacyRoute,
+  SettingsSafetyRoute: SettingsSafetyRoute,
   SettingsIndexRoute: SettingsIndexRoute,
 }
 
