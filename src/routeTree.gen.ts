@@ -17,6 +17,7 @@ import { Route as SettingsPrivacyRouteImport } from './routes/settings.privacy'
 import { Route as SettingsNotificationsRouteImport } from './routes/settings.notifications'
 import { Route as SettingsDiscoveryRouteImport } from './routes/settings.discovery'
 import { Route as SettingsAccountRouteImport } from './routes/settings.account'
+import { Route as LegalDocRouteImport } from './routes/legal.$doc'
 
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
@@ -58,10 +59,16 @@ const SettingsAccountRoute = SettingsAccountRouteImport.update({
   path: '/account',
   getParentRoute: () => SettingsRoute,
 } as any)
+const LegalDocRoute = LegalDocRouteImport.update({
+  id: '/legal/$doc',
+  path: '/legal/$doc',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/settings': typeof SettingsRouteWithChildren
+  '/legal/$doc': typeof LegalDocRoute
   '/settings/account': typeof SettingsAccountRoute
   '/settings/discovery': typeof SettingsDiscoveryRoute
   '/settings/notifications': typeof SettingsNotificationsRoute
@@ -71,6 +78,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/legal/$doc': typeof LegalDocRoute
   '/settings/account': typeof SettingsAccountRoute
   '/settings/discovery': typeof SettingsDiscoveryRoute
   '/settings/notifications': typeof SettingsNotificationsRoute
@@ -82,6 +90,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/settings': typeof SettingsRouteWithChildren
+  '/legal/$doc': typeof LegalDocRoute
   '/settings/account': typeof SettingsAccountRoute
   '/settings/discovery': typeof SettingsDiscoveryRoute
   '/settings/notifications': typeof SettingsNotificationsRoute
@@ -94,6 +103,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/settings'
+    | '/legal/$doc'
     | '/settings/account'
     | '/settings/discovery'
     | '/settings/notifications'
@@ -103,6 +113,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/legal/$doc'
     | '/settings/account'
     | '/settings/discovery'
     | '/settings/notifications'
@@ -113,6 +124,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/settings'
+    | '/legal/$doc'
     | '/settings/account'
     | '/settings/discovery'
     | '/settings/notifications'
@@ -124,6 +136,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SettingsRoute: typeof SettingsRouteWithChildren
+  LegalDocRoute: typeof LegalDocRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -184,6 +197,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsAccountRouteImport
       parentRoute: typeof SettingsRoute
     }
+    '/legal/$doc': {
+      id: '/legal/$doc'
+      path: '/legal/$doc'
+      fullPath: '/legal/$doc'
+      preLoaderRoute: typeof LegalDocRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -212,6 +232,7 @@ const SettingsRouteWithChildren = SettingsRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SettingsRoute: SettingsRouteWithChildren,
+  LegalDocRoute: LegalDocRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -225,7 +225,8 @@ export const Route = createFileRoute("/legal/$doc")({
 });
 
 function LegalDoc() {
-  const { doc } = Route.useLoaderData();
+  const { doc } = Route.useLoaderData() as { doc: Doc };
+
   return (
     <SettingsShell title={doc.title} backTo="/settings" intro={doc.intro}>
       <article className="pb-10">
