@@ -57,7 +57,13 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+
+  --shadow-soft: 0 1px 2px 0 oklch(0.18 0.01 90 / 0.04), 0 8px 24px -12px oklch(0.18 0.01 90 / 0.12);
+  --shadow-card: 0 1px 3px 0 oklch(0.18 0.01 90 / 0.05), 0 12px 32px -16px oklch(0.18 0.01 90 / 0.18);
+  --shadow-float: 0 8px 20px -6px oklch(0.18 0.01 90 / 0.2), 0 24px 48px -24px oklch(0.18 0.01 90 / 0.28);
+  --shadow-glow: 0 10px 40px -12px oklch(0.79 0.06 250 / 0.55);
 }
+
 
 :root {
   --radius: 1rem;
