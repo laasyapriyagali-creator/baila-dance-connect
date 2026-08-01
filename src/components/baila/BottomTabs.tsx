@@ -37,10 +37,10 @@ export function BottomTabs() {
   return (
     <nav
       aria-label="Primary"
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-baila-ink/10 bg-baila-cream/95 backdrop-blur"
-      style={{ paddingBottom: "max(env(safe-area-inset-bottom), 0.5rem)" }}
+      className="fixed inset-x-0 bottom-0 z-40 flex justify-center px-4 pt-2"
+      style={{ paddingBottom: "max(env(safe-area-inset-bottom), 0.75rem)" }}
     >
-      <ul className="mx-auto grid max-w-md grid-cols-3">
+      <ul className="grid w-full max-w-sm grid-cols-3 rounded-full border border-baila-ink/[0.07] bg-card/85 p-1.5 shadow-float backdrop-blur-xl">
         {tabs.map(({ to, label, Icon, ...rest }) => {
           const count = "badge" in rest && rest.badge && unseen ? unseen : 0;
           return (
@@ -48,20 +48,20 @@ export function BottomTabs() {
               <Link
                 to={to}
                 activeProps={{ "data-active": "true" } as never}
-                className="group flex min-h-11 flex-col items-center gap-0.5 py-2.5 text-baila-ink/50 data-[active=true]:text-baila-ink"
+                className="press group flex min-h-11 flex-col items-center justify-center gap-0.5 rounded-full py-2 text-baila-ink/45 data-[active=true]:text-baila-ink"
               >
-                <span className="relative flex h-9 w-12 items-center justify-center rounded-full transition group-data-[active=true]:bg-baila-yellow">
-                  <Icon className="h-[19px] w-[19px]" strokeWidth={2.25} />
+                <span className="relative flex h-8 w-14 items-center justify-center rounded-full transition-all duration-200 group-data-[active=true]:bg-gradient-baila group-data-[active=true]:shadow-soft">
+                  <Icon className="h-[18px] w-[18px] transition-transform duration-200 group-data-[active=true]:scale-110" strokeWidth={2.25} />
                   {count > 0 && (
                     <span
                       aria-label={`${count} unseen`}
-                      className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-baila-orange px-1 text-[10px] font-bold text-white"
+                      className="animate-pop-in absolute right-1.5 top-0 flex h-4 min-w-4 items-center justify-center rounded-full bg-baila-orange px-1 text-[10px] font-bold text-white shadow-soft"
                     >
                       {count > 9 ? "9+" : count}
                     </span>
                   )}
                 </span>
-                <span className="text-[11px] font-semibold tracking-wide">{label}</span>
+                <span className="text-[10px] font-bold uppercase tracking-[0.08em]">{label}</span>
               </Link>
             </li>
           );

@@ -1,16 +1,21 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { Logo } from "@/components/baila/Logo";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
+import { Button, Card, Input } from "@/components/ui-baila";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
       { title: "Sign in — Baila" },
-      { name: "description", content: "Join the Baila dance community." },
+      { name: "description", content: "Join the Baila dance community and meet partners through movement." },
+      { property: "og:title", content: "Sign in — Baila" },
+      { property: "og:description", content: "Join the Baila dance community and meet partners through movement." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: AuthPage,
@@ -68,80 +73,76 @@ function AuthPage() {
   };
 
   return (
-    <main className="relative flex min-h-[100dvh] flex-col items-center justify-center overflow-hidden bg-baila-yellow px-6 py-10">
-      <Link to="/" className="absolute left-4 top-4 text-sm font-semibold text-baila-ink/70">
-        ← Back
+    <main className="bg-gradient-baila relative flex min-h-[100dvh] flex-col items-center justify-center overflow-hidden px-5 py-10">
+      <div aria-hidden className="pointer-events-none absolute -left-24 -top-16 h-72 w-72 rounded-full bg-white/40 blur-3xl" />
+      <div aria-hidden className="pointer-events-none absolute -bottom-20 -right-20 h-80 w-80 rounded-full bg-baila-cream/50 blur-3xl" />
+
+      <Link
+        to="/"
+        aria-label="Back"
+        className="press absolute left-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-white/70 text-baila-ink backdrop-blur"
+        style={{ top: "max(env(safe-area-inset-top), 1rem)" }}
+      >
+        <ArrowLeft className="h-5 w-5" />
       </Link>
 
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-sm"
-      >
+      <div className="animate-rise w-full max-w-sm">
         <div className="mb-7 flex flex-col items-center text-center">
-          <Logo size={64} />
-          <h1 className="mt-5 font-display text-3xl font-semibold text-baila-ink">
+          <Logo size={68} className="shadow-soft" />
+          <h1 className="mt-5 font-display text-3xl font-semibold tracking-[-0.03em] text-baila-ink">
             {mode === "signin" ? "Welcome back" : "Find your rhythm"}
           </h1>
-          <p className="mt-1.5 text-sm text-baila-ink/70">
+          <p className="mt-1.5 text-sm text-baila-ink/60">
             {mode === "signin" ? "Sign in to keep dancing." : "Create an account to start."}
           </p>
         </div>
 
-        <button
-          onClick={handleGoogle}
-          disabled={loading}
-          className="flex w-full items-center justify-center gap-2.5 rounded-full bg-white px-5 py-3.5 text-sm font-semibold text-baila-ink shadow-sm transition active:scale-[0.99] disabled:opacity-60"
-        >
-          <GoogleMark />
-          Continue with Google
-        </button>
+        <Card className="p-5">
+          <Button variant="secondary" size="md" block onClick={handleGoogle} disabled={loading} className="h-12">
+            <GoogleMark />
+            Continue with Google
+          </Button>
 
-        <div className="my-5 flex items-center gap-3 text-xs font-semibold uppercase tracking-widest text-baila-ink/40">
-          <span className="h-px flex-1 bg-baila-ink/15" />
-          or
-          <span className="h-px flex-1 bg-baila-ink/15" />
-        </div>
+          <div className="my-5 flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-baila-ink/35">
+            <span className="h-px flex-1 bg-baila-ink/10" />
+            or
+            <span className="h-px flex-1 bg-baila-ink/10" />
+          </div>
 
-        <form onSubmit={handleEmail} className="space-y-3">
-          <input
-            type="email"
-            required
-            autoComplete="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full rounded-2xl border border-baila-ink/15 bg-white px-4 py-3.5 text-[15px] text-baila-ink placeholder:text-baila-ink/40 focus:border-baila-ink focus:outline-none"
-          />
-          <input
-            type="password"
-            required
-            minLength={8}
-            autoComplete={mode === "signin" ? "current-password" : "new-password"}
-            placeholder="Password (min 8 characters)"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full rounded-2xl border border-baila-ink/15 bg-white px-4 py-3.5 text-[15px] text-baila-ink placeholder:text-baila-ink/40 focus:border-baila-ink focus:outline-none"
-          />
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded-full bg-baila-ink px-5 py-3.5 text-sm font-semibold text-baila-cream transition active:scale-[0.99] disabled:opacity-60"
-          >
-            {loading ? "Please wait…" : mode === "signin" ? "Sign in" : "Create account"}
-          </button>
-        </form>
+          <form onSubmit={handleEmail} className="space-y-3">
+            <Input
+              type="email"
+              required
+              autoComplete="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+            <Input
+              type="password"
+              required
+              minLength={8}
+              autoComplete={mode === "signin" ? "current-password" : "new-password"}
+              placeholder="Password (min 8 characters)"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <Button type="submit" variant="ink" block disabled={loading} className="h-12">
+              {loading ? "Please wait…" : mode === "signin" ? "Sign in" : "Create account"}
+            </Button>
+          </form>
+        </Card>
 
-        <p className="mt-5 text-center text-sm text-baila-ink/70">
+        <p className="mt-5 text-center text-sm text-baila-ink/65">
           {mode === "signin" ? "New to Baila?" : "Already dancing with us?"}{" "}
           <button
             onClick={() => setMode(mode === "signin" ? "signup" : "signin")}
-            className="font-semibold text-baila-ink underline underline-offset-2"
+            className="font-semibold text-baila-ink underline underline-offset-4"
           >
             {mode === "signin" ? "Create an account" : "Sign in"}
           </button>
         </p>
-      </motion.div>
+      </div>
     </main>
   );
 }
