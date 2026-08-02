@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   AVAILABILITY,
   DANCE_STYLES,
+  LANGUAGES,
   ROLE_LABEL,
   type AppRole,
   type Experience,
@@ -35,12 +36,13 @@ export function EditProfileDialog({
   const qc = useQueryClient();
   const [form, setForm] = useState(() => initial(profile));
   const [saving, setSaving] = useState(false);
+  const [ageError, setAgeError] = useState<string | null>(null);
 
   useEffect(() => {
     if (open) setForm(initial(profile));
   }, [open, profile]);
 
-  const toggle = <K extends "dance_styles" | "availability">(key: K, s: string) =>
+  const toggle = <K extends "dance_styles" | "availability" | "languages">(key: K, s: string) =>
     setForm((f) => ({
       ...f,
       [key]: f[key].includes(s) ? f[key].filter((x) => x !== s) : [...f[key], s],
@@ -54,6 +56,14 @@ export function EditProfileDialog({
 
   const save = async () => {
     if (!form.display_name.trim()) return toast.error("Add a display name");
+    setAgeError(null);
+    if (form.age.trim()) {
+      const ageNum = Number(form.age);
+      if (!Number.isInteger(ageNum) || ageNum < 18 || ageNum > 99) {
+        setAgeError("Age must be a whole number between 18 and 99");
+        return;
+      }
+    }
     setSaving(true);
     const { error } = await supabase
       .from("profiles")
@@ -65,6 +75,9 @@ export function EditProfileDialog({
         city: form.city.trim() || null,
         experience: form.experience,
         years_dancing: form.years_dancing ? Number(form.years_dancing) : null,
+        age: form.age.trim() ? Number(form.age) : null,
+        languages: form.languages,
+        favorite_style: form.favorite_style || null,
         role: form.role,
         availability: form.availability,
         dance_styles: form.dance_styles,
@@ -161,6 +174,41 @@ export function EditProfileDialog({
               ))}
             </div>
           </Field>
+          <Field label="Favorite style">
+            <div className="flex flex-wrap gap-2">
+              {(form.dance_styles.length > 0 ? form.dance_styles : DANCE_STYLES).map((s) => (
+                <Chip
+                  key={s}
+                  on={form.favorite_style === s}
+                  onClick={() => setForm({ ...form, favorite_style: form.favorite_style === s ? "" : s })}
+                >
+                  {s}
+                </Chip>
+              ))}
+            </div>
+          </Field>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Age">
+              <Input
+                value={form.age}
+                onChange={(v) => {
+                  setAgeError(null);
+                  setForm({ ...form, age: v.replace(/[^0-9]/g, "").slice(0, 2) });
+                }}
+                placeholder="e.g. 27"
+              />
+              {ageError && <p className="mt-1 px-1 text-xs font-medium text-destructive">{ageError}</p>}
+            </Field>
+          </div>
+          <Field label="Languages">
+            <div className="flex flex-wrap gap-2">
+              {LANGUAGES.map((l) => (
+                <Chip key={l} on={form.languages.includes(l)} onClick={() => toggle("languages", l)}>
+                  {l}
+                </Chip>
+              ))}
+            </div>
+          </Field>
           <Field label="Social links">
             <div className="space-y-2">
               {form.socials.map((s, i) => (
@@ -207,6 +255,9 @@ function initial(p: Profile) {
     city: p.city ?? "",
     experience: (p.experience ?? "Beginner") as Experience,
     years_dancing: p.years_dancing != null ? String(p.years_dancing) : "",
+    age: p.age != null ? String(p.age) : "",
+    languages: p.languages ?? [],
+    favorite_style: p.favorite_style ?? "",
     role: p.role,
     availability: p.availability ?? [],
     dance_styles: p.dance_styles ?? [],
