@@ -83,7 +83,7 @@ function DanceFeed() {
       if (vids.length === 0) return [] as FeedItem[];
       const ids = Array.from(new Set(vids.map((v) => v.user_id)));
       const { data: profs } = await supabase.from("profiles").select("*").in("id", ids);
-      const map = new Map((profs ?? []).map((p) => [p.id, p as Profile]));
+      const map = new Map((profs ?? []).map((p) => [p.id, p as unknown as Profile]));
       const mineStyles = new Set(me?.dance_styles ?? []);
       const now = Date.now();
       const score = (it: FeedItem) => {

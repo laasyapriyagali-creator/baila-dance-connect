@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      blocks: {
+        Row: {
+          blocked_id: string
+          blocker_id: string
+          created_at: string
+          id: string
+        }
+        Insert: {
+          blocked_id: string
+          blocker_id: string
+          created_at?: string
+          id?: string
+        }
+        Update: {
+          blocked_id?: string
+          blocker_id?: string
+          created_at?: string
+          id?: string
+        }
+        Relationships: []
+      }
       classes: {
         Row: {
           city: string | null
@@ -91,6 +112,50 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      dance_dates: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          notes: string | null
+          request_id: string
+          starts_at: string
+          style: string | null
+          updated_at: string
+          venue: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          notes?: string | null
+          request_id: string
+          starts_at: string
+          style?: string | null
+          updated_at?: string
+          venue: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          notes?: string | null
+          request_id?: string
+          starts_at?: string
+          style?: string | null
+          updated_at?: string
+          venue?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dance_dates_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: true
+            referencedRelation: "connection_requests"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       dance_videos: {
         Row: {
@@ -170,6 +235,27 @@ export type Database = {
         }
         Relationships: []
       }
+      feed_skips: {
+        Row: {
+          created_at: string
+          id: string
+          skipped_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          skipped_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          skipped_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
@@ -199,6 +285,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          age: number | null
           availability: string[]
           avatar_url: string | null
           bio: string | null
@@ -208,9 +295,12 @@ export type Database = {
           dance_styles: string[]
           display_name: string | null
           experience: string | null
+          favorite_style: string | null
           headline: string | null
           id: string
+          languages: string[]
           onboarded: boolean
+          paused: boolean
           role: Database["public"]["Enums"]["app_role"]
           socials: Json
           updated_at: string
@@ -218,6 +308,7 @@ export type Database = {
           years_dancing: number | null
         }
         Insert: {
+          age?: number | null
           availability?: string[]
           avatar_url?: string | null
           bio?: string | null
@@ -227,9 +318,12 @@ export type Database = {
           dance_styles?: string[]
           display_name?: string | null
           experience?: string | null
+          favorite_style?: string | null
           headline?: string | null
           id: string
+          languages?: string[]
           onboarded?: boolean
+          paused?: boolean
           role?: Database["public"]["Enums"]["app_role"]
           socials?: Json
           updated_at?: string
@@ -237,6 +331,7 @@ export type Database = {
           years_dancing?: number | null
         }
         Update: {
+          age?: number | null
           availability?: string[]
           avatar_url?: string | null
           bio?: string | null
@@ -246,14 +341,121 @@ export type Database = {
           dance_styles?: string[]
           display_name?: string | null
           experience?: string | null
+          favorite_style?: string | null
           headline?: string | null
           id?: string
+          languages?: string[]
           onboarded?: boolean
+          paused?: boolean
           role?: Database["public"]["Enums"]["app_role"]
           socials?: Json
           updated_at?: string
           username?: string | null
           years_dancing?: number | null
+        }
+        Relationships: []
+      }
+      reports: {
+        Row: {
+          created_at: string
+          id: string
+          note: string | null
+          reason: string
+          reported_id: string
+          reporter_id: string
+          video_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          note?: string | null
+          reason: string
+          reported_id: string
+          reporter_id: string
+          video_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          note?: string | null
+          reason?: string
+          reported_id?: string
+          reporter_id?: string
+          video_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reports_video_id_fkey"
+            columns: ["video_id"]
+            isOneToOne: false
+            referencedRelation: "dance_videos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_settings: {
+        Row: {
+          age_max: number
+          age_min: number
+          autoplay: boolean
+          blur_explicit: boolean
+          created_at: string
+          discoverable: boolean
+          discovery_styles: string[]
+          emergency_contact: string | null
+          max_distance_km: number
+          notif_again: boolean
+          notif_decisions: boolean
+          notif_master: boolean
+          notif_reminders: boolean
+          notif_requests: boolean
+          trusted_contact: string | null
+          updated_at: string
+          user_id: string
+          video_quality: string
+          videos_public: boolean
+        }
+        Insert: {
+          age_max?: number
+          age_min?: number
+          autoplay?: boolean
+          blur_explicit?: boolean
+          created_at?: string
+          discoverable?: boolean
+          discovery_styles?: string[]
+          emergency_contact?: string | null
+          max_distance_km?: number
+          notif_again?: boolean
+          notif_decisions?: boolean
+          notif_master?: boolean
+          notif_reminders?: boolean
+          notif_requests?: boolean
+          trusted_contact?: string | null
+          updated_at?: string
+          user_id: string
+          video_quality?: string
+          videos_public?: boolean
+        }
+        Update: {
+          age_max?: number
+          age_min?: number
+          autoplay?: boolean
+          blur_explicit?: boolean
+          created_at?: string
+          discoverable?: boolean
+          discovery_styles?: string[]
+          emergency_contact?: string | null
+          max_distance_km?: number
+          notif_again?: boolean
+          notif_decisions?: boolean
+          notif_master?: boolean
+          notif_reminders?: boolean
+          notif_requests?: boolean
+          trusted_contact?: string | null
+          updated_at?: string
+          user_id?: string
+          video_quality?: string
+          videos_public?: boolean
         }
         Relationships: []
       }
@@ -272,7 +474,12 @@ export type Database = {
     }
     Enums: {
       app_role: "dancer" | "instructor" | "organizer"
-      connection_status: "pending" | "accepted" | "declined"
+      connection_status:
+        | "pending"
+        | "accepted"
+        | "declined"
+        | "expired"
+        | "completed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -401,7 +608,13 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["dancer", "instructor", "organizer"],
-      connection_status: ["pending", "accepted", "declined"],
+      connection_status: [
+        "pending",
+        "accepted",
+        "declined",
+        "expired",
+        "completed",
+      ],
     },
   },
 } as const
