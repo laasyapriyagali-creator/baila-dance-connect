@@ -27,12 +27,17 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  // Until React hydrates, a tap on submit would do a native GET form post
+  // (which leaks credentials into the URL and lands on a 404). Gate on mount.
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
+    setReady(true);
     supabase.auth.getSession().then(({ data }) => {
       if (data.session) navigate({ to: "/app/dance", replace: true });
     });
   }, [navigate]);
+
 
   const handleEmail = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -98,7 +103,7 @@ function AuthPage() {
         </div>
 
         <Card className="p-5">
-          <Button variant="secondary" size="md" block onClick={handleGoogle} disabled={loading} className="h-12">
+          <Button variant="secondary" size="md" block onClick={handleGoogle} disabled={loading || !ready} className="h-12">
             <GoogleMark />
             Continue with Google
           </Button>
@@ -127,7 +132,7 @@ function AuthPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
-            <Button type="submit" variant="ink" block disabled={loading} className="h-12">
+            <Button type="submit" variant="ink" block disabled={loading || !ready} className="h-12">
               {loading ? "Please wait…" : mode === "signin" ? "Sign in" : "Create account"}
             </Button>
           </form>

@@ -1,8 +1,10 @@
-import { MapPin, Play, GraduationCap, CalendarDays, Volume2, VolumeX, Music2 } from "lucide-react";
+import { MapPin, Play, GraduationCap, CalendarDays, Volume2, VolumeX, Music2, MoreHorizontal, Ban, Flag } from "lucide-react";
 import { forwardRef, memo, useRef, useState } from "react";
 import { SignedVideo } from "@/components/baila/SignedMedia";
 import type { Profile, DanceVideo } from "@/lib/baila-types";
 import { ROLE_LABEL } from "@/lib/baila-types";
+import { IconButton, ModalSheet } from "@/components/ui-baila";
+import { ReportSheet } from "@/components/baila/ReportSheet";
 
 export type FeedItem = { profile: Profile; mainVideo: DanceVideo };
 
@@ -11,15 +13,18 @@ type Props = {
   active: boolean;
   preload: boolean;
   onDoubleTap?: () => void;
+  onBlock?: (profileId: string) => void;
 };
 
 export const DanceCard = memo(
   forwardRef<HTMLVideoElement, Props>(function DanceCard(
-    { item, active, preload, onDoubleTap },
+    { item, active, preload, onDoubleTap, onBlock },
     videoRef,
   ) {
     const { profile, mainVideo } = item;
     const [muted, setMuted] = useState(true);
+    const [menuOpen, setMenuOpen] = useState(false);
+    const [reportOpen, setReportOpen] = useState(false);
     const lastTap = useRef(0);
 
     const handleTap = () => {
@@ -81,14 +86,23 @@ export const DanceCard = memo(
           )}
         </div>
 
-        <button
-          type="button"
-          aria-label={muted ? "Unmute" : "Mute"}
-          onClick={() => setMuted((m) => !m)}
-          className="press absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/15 text-white backdrop-blur-md"
-        >
-          {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-        </button>
+        <div className="absolute right-4 top-4 flex items-center gap-2">
+          <button
+            type="button"
+            aria-label={muted ? "Unmute" : "Mute"}
+            onClick={() => setMuted((m) => !m)}
+            className="press flex h-10 w-10 items-center justify-center rounded-full border border-white/15 bg-white/15 text-white backdrop-blur-md"
+          >
+            {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+          </button>
+          <IconButton
+            variant="glass"
+            aria-label="More options"
+            onClick={() => setMenuOpen(true)}
+          >
+            <MoreHorizontal className="h-4 w-4" />
+          </IconButton>
+        </div>
 
         <div className="pointer-events-none absolute inset-x-0 bottom-0 p-5 pb-6 pt-24">
           <div className="animate-rise min-w-0 text-white">
@@ -124,6 +138,41 @@ export const DanceCard = memo(
             )}
           </div>
         </div>
+
+        <ModalSheet open={menuOpen} onClose={() => setMenuOpen(false)} label="Dancer options">
+          <h3 className="font-display text-xl font-semibold tracking-[-0.02em] text-baila-ink">
+            {profile.display_name || profile.username || "Dancer"}
+          </h3>
+          <div className="mt-4 space-y-2">
+            <button
+              type="button"
+              onClick={() => {
+                setMenuOpen(false);
+                onBlock?.(profile.id);
+              }}
+              className="press flex w-full items-center gap-3 rounded-2xl border border-baila-ink/[0.07] bg-white px-4 py-3.5 text-left text-sm font-semibold text-baila-ink shadow-soft"
+            >
+              <Ban className="h-4 w-4" /> Block dancer
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setMenuOpen(false);
+                setReportOpen(true);
+              }}
+              className="press flex w-full items-center gap-3 rounded-2xl border border-baila-ink/[0.07] bg-white px-4 py-3.5 text-left text-sm font-semibold text-destructive shadow-soft"
+            >
+              <Flag className="h-4 w-4" /> Report
+            </button>
+          </div>
+        </ModalSheet>
+
+        <ReportSheet
+          open={reportOpen}
+          onOpenChange={setReportOpen}
+          reportedId={profile.id}
+          videoId={mainVideo.id}
+        />
       </div>
     );
   }),

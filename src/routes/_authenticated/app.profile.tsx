@@ -15,6 +15,9 @@ import {
   ImagePlus,
   User as UserIcon,
   Film,
+  Layers,
+  PauseCircle,
+  Globe2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -22,6 +25,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/lib/auth";
 import { UploadVideoDialog } from "@/components/baila/UploadVideoDialog";
 import { EditProfileDialog } from "@/components/baila/EditProfileDialog";
+import { ManageVideosSheet } from "@/components/baila/ManageVideosSheet";
 import { SignedImage } from "@/components/baila/SignedMedia";
 import { VideoPlayerDialog } from "@/components/baila/VideoPlayerDialog";
 import { type DanceVideo, type Profile } from "@/lib/baila-types";
@@ -53,6 +57,7 @@ function ProfilePage() {
   const qc = useQueryClient();
   const [uploadOpen, setUploadOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [manageOpen, setManageOpen] = useState(false);
   const [playingVideo, setPlayingVideo] = useState<DanceVideo | null>(null);
   const coverInputRef = useRef<HTMLInputElement>(null);
   const avatarInputRef = useRef<HTMLInputElement>(null);
@@ -88,6 +93,19 @@ function ProfilePage() {
   });
 
   // Onboarding flow handles initial profile setup at /app/onboarding.
+
+  const { data: danceCount } = useQuery({
+    queryKey: ["dances-count", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("connection_requests")
+        .select("id", { count: "exact", head: true })
+        .or(`from_user.eq.${user!.id},to_user.eq.${user!.id}`)
+        .in("status", ["accepted", "completed"]);
+      return count ?? 0;
+    },
+  });
 
   const removeVideo = async (v: DanceVideo) => {
     await supabase.storage.from("dance-videos").remove([v.storage_path]);
@@ -292,16 +310,27 @@ function ProfilePage() {
           ))}
         </div>
 
+        {profile.paused && (
+          <div className="mt-4 flex items-center justify-between gap-3 rounded-2xl border border-baila-ink/[0.07] bg-baila-yellow-soft/50 px-4 py-3">
+            <span className="flex items-center gap-2 text-sm font-semibold text-baila-ink/80">
+              <PauseCircle className="h-4 w-4" /> Profile paused — you're hidden from discovery
+            </span>
+            <Link to="/app/settings" className="text-xs font-bold underline underline-offset-4 text-baila-ink">
+              Settings
+            </Link>
+          </div>
+        )}
+
         <div className="mt-5 grid grid-cols-3 gap-2.5">
-          <StatCard value={videos?.length ?? 0} label="Dances" icon={<Film className="h-4 w-4" />} />
+          <StatCard value={danceCount ?? 0} label="Dances" icon={<Film className="h-4 w-4" />} />
+          <StatCard value={videos?.length ?? 0} label="Videos" icon={<Music2 className="h-4 w-4" />} />
           <StatCard
-            value={profile.dance_styles.length}
-            label="Styles"
-            icon={<Music2 className="h-4 w-4" />}
-          />
-          <StatCard
-            value={profile.years_dancing != null && profile.years_dancing > 0 ? `${profile.years_dancing}y` : "—"}
-            label="Dancing"
+            value={
+              profile.years_dancing != null && profile.years_dancing > 0
+                ? `${profile.years_dancing}y`
+                : new Date(profile.created_at).getFullYear()
+            }
+            label="Dancing since"
             icon={<Sparkles className="h-4 w-4" />}
           />
         </div>
@@ -315,15 +344,37 @@ function ProfilePage() {
             ))}
           </div>
         )}
+
+        {(profile.languages.length > 0 || profile.favorite_style) && (
+          <div className="mt-2.5 flex flex-wrap gap-2">
+            {profile.favorite_style && (
+              <Pill tone="ink" className="px-3 py-1.5 text-[11px]">
+                <Layers className="h-3 w-3" /> {profile.favorite_style}
+              </Pill>
+            )}
+            {profile.languages.map((l) => (
+              <Pill key={l} tone="muted" className="px-3 py-1.5 text-[11px]">
+                <Globe2 className="h-3 w-3" /> {l}
+              </Pill>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* Reel */}
       <section className="mt-8 px-5">
         <div className="mb-3 flex items-end justify-between gap-3">
           <h2 className="font-display text-xl font-semibold tracking-[-0.02em] text-baila-ink">Dance reel</h2>
-          <Button variant="ink" size="sm" onClick={() => setUploadOpen(true)}>
-            <Plus className="h-4 w-4" /> Upload
-          </Button>
+          <div className="flex gap-2">
+            {videos && videos.length > 0 && (
+              <Button variant="secondary" size="sm" onClick={() => setManageOpen(true)}>
+                Manage videos
+              </Button>
+            )}
+            <Button variant="ink" size="sm" onClick={() => setUploadOpen(true)}>
+              <Plus className="h-4 w-4" /> Upload
+            </Button>
+          </div>
         </div>
 
         {!videos || videos.length === 0 ? (
@@ -427,6 +478,14 @@ function ProfilePage() {
         open={!!playingVideo}
         onOpenChange={(open) => !open && setPlayingVideo(null)}
       />
+      {user && (
+        <ManageVideosSheet
+          userId={user.id}
+          videos={videos ?? []}
+          open={manageOpen}
+          onOpenChange={setManageOpen}
+        />
+      )}
     </div>
   );
 }

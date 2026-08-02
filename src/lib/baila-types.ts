@@ -12,6 +12,10 @@ export type Profile = {
   city: string | null;
   experience: Experience | null;
   years_dancing: number | null;
+  age: number | null;
+  languages: string[];
+  favorite_style: string | null;
+  paused: boolean;
   availability: string[];
   role: AppRole;
   avatar_url: string | null;
@@ -35,17 +39,85 @@ export type DanceVideo = {
   created_at: string;
 };
 
+export type ConnectionStatus = "pending" | "accepted" | "declined" | "expired" | "completed";
+
 export type ConnectionRequest = {
   id: string;
   from_user: string;
   to_user: string;
-  status: "pending" | "accepted" | "declined";
+  status: ConnectionStatus;
   again_from: boolean;
   again_to: boolean;
   seen_at: string | null;
   created_at: string;
   updated_at: string;
 };
+
+export type DanceDate = {
+  id: string;
+  request_id: string;
+  created_by: string;
+  venue: string;
+  style: string | null;
+  starts_at: string;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type UserSettings = {
+  user_id: string;
+  discovery_styles: string[];
+  max_distance_km: number;
+  age_min: number;
+  age_max: number;
+  discoverable: boolean;
+  videos_public: boolean;
+  notif_master: boolean;
+  notif_requests: boolean;
+  notif_decisions: boolean;
+  notif_again: boolean;
+  notif_reminders: boolean;
+  blur_explicit: boolean;
+  autoplay: boolean;
+  video_quality: string;
+  trusted_contact: string | null;
+  emergency_contact: string | null;
+};
+
+export const REQUEST_TTL_HOURS = 24;
+
+export const REPORT_REASONS = [
+  "Inappropriate or explicit content",
+  "Harassment or hate speech",
+  "Fake profile or impersonation",
+  "Underage user",
+  "Spam or scam",
+  "Something else",
+] as const;
+
+export const LANGUAGES = [
+  "English",
+  "Spanish",
+  "French",
+  "Portuguese",
+  "German",
+  "Italian",
+  "Hindi",
+  "Tamil",
+  "Korean",
+  "Japanese",
+  "Mandarin",
+  "Arabic",
+] as const;
+
+export const SAFETY_CHECKLIST = [
+  "Meet in a public place — a studio, social or busy park.",
+  "Tell a trusted contact where you're going and when.",
+  "Keep your own transport home.",
+  "Trust your instincts — leave any time you feel off.",
+];
+
 
 export type DanceClass = {
   id: string;

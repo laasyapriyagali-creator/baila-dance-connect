@@ -20,6 +20,10 @@ import { Route as AuthenticatedAppNotificationsRouteImport } from './routes/_aut
 import { Route as AuthenticatedAppDateRouteImport } from './routes/_authenticated/app.date'
 import { Route as AuthenticatedAppDanceRouteImport } from './routes/_authenticated/app.dance'
 import { Route as AuthenticatedAppUUsernameRouteImport } from './routes/_authenticated/app.u.$username'
+import { Route as AuthenticatedAppSettingsSafetyRouteImport } from './routes/_authenticated/app.settings.safety'
+import { Route as AuthenticatedAppSettingsNotificationsRouteImport } from './routes/_authenticated/app.settings.notifications'
+import { Route as AuthenticatedAppSettingsDiscoveryRouteImport } from './routes/_authenticated/app.settings.discovery'
+import { Route as AuthenticatedAppSettingsAccountRouteImport } from './routes/_authenticated/app.settings.account'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -79,6 +83,30 @@ const AuthenticatedAppUUsernameRoute =
     path: '/u/$username',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
+const AuthenticatedAppSettingsSafetyRoute =
+  AuthenticatedAppSettingsSafetyRouteImport.update({
+    id: '/safety',
+    path: '/safety',
+    getParentRoute: () => AuthenticatedAppSettingsRoute,
+  } as any)
+const AuthenticatedAppSettingsNotificationsRoute =
+  AuthenticatedAppSettingsNotificationsRouteImport.update({
+    id: '/notifications',
+    path: '/notifications',
+    getParentRoute: () => AuthenticatedAppSettingsRoute,
+  } as any)
+const AuthenticatedAppSettingsDiscoveryRoute =
+  AuthenticatedAppSettingsDiscoveryRouteImport.update({
+    id: '/discovery',
+    path: '/discovery',
+    getParentRoute: () => AuthenticatedAppSettingsRoute,
+  } as any)
+const AuthenticatedAppSettingsAccountRoute =
+  AuthenticatedAppSettingsAccountRouteImport.update({
+    id: '/account',
+    path: '/account',
+    getParentRoute: () => AuthenticatedAppSettingsRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -89,7 +117,11 @@ export interface FileRoutesByFullPath {
   '/app/notifications': typeof AuthenticatedAppNotificationsRoute
   '/app/onboarding': typeof AuthenticatedAppOnboardingRoute
   '/app/profile': typeof AuthenticatedAppProfileRoute
-  '/app/settings': typeof AuthenticatedAppSettingsRoute
+  '/app/settings': typeof AuthenticatedAppSettingsRouteWithChildren
+  '/app/settings/account': typeof AuthenticatedAppSettingsAccountRoute
+  '/app/settings/discovery': typeof AuthenticatedAppSettingsDiscoveryRoute
+  '/app/settings/notifications': typeof AuthenticatedAppSettingsNotificationsRoute
+  '/app/settings/safety': typeof AuthenticatedAppSettingsSafetyRoute
   '/app/u/$username': typeof AuthenticatedAppUUsernameRoute
 }
 export interface FileRoutesByTo {
@@ -101,7 +133,11 @@ export interface FileRoutesByTo {
   '/app/notifications': typeof AuthenticatedAppNotificationsRoute
   '/app/onboarding': typeof AuthenticatedAppOnboardingRoute
   '/app/profile': typeof AuthenticatedAppProfileRoute
-  '/app/settings': typeof AuthenticatedAppSettingsRoute
+  '/app/settings': typeof AuthenticatedAppSettingsRouteWithChildren
+  '/app/settings/account': typeof AuthenticatedAppSettingsAccountRoute
+  '/app/settings/discovery': typeof AuthenticatedAppSettingsDiscoveryRoute
+  '/app/settings/notifications': typeof AuthenticatedAppSettingsNotificationsRoute
+  '/app/settings/safety': typeof AuthenticatedAppSettingsSafetyRoute
   '/app/u/$username': typeof AuthenticatedAppUUsernameRoute
 }
 export interface FileRoutesById {
@@ -115,7 +151,11 @@ export interface FileRoutesById {
   '/_authenticated/app/notifications': typeof AuthenticatedAppNotificationsRoute
   '/_authenticated/app/onboarding': typeof AuthenticatedAppOnboardingRoute
   '/_authenticated/app/profile': typeof AuthenticatedAppProfileRoute
-  '/_authenticated/app/settings': typeof AuthenticatedAppSettingsRoute
+  '/_authenticated/app/settings': typeof AuthenticatedAppSettingsRouteWithChildren
+  '/_authenticated/app/settings/account': typeof AuthenticatedAppSettingsAccountRoute
+  '/_authenticated/app/settings/discovery': typeof AuthenticatedAppSettingsDiscoveryRoute
+  '/_authenticated/app/settings/notifications': typeof AuthenticatedAppSettingsNotificationsRoute
+  '/_authenticated/app/settings/safety': typeof AuthenticatedAppSettingsSafetyRoute
   '/_authenticated/app/u/$username': typeof AuthenticatedAppUUsernameRoute
 }
 export interface FileRouteTypes {
@@ -130,6 +170,10 @@ export interface FileRouteTypes {
     | '/app/onboarding'
     | '/app/profile'
     | '/app/settings'
+    | '/app/settings/account'
+    | '/app/settings/discovery'
+    | '/app/settings/notifications'
+    | '/app/settings/safety'
     | '/app/u/$username'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -142,6 +186,10 @@ export interface FileRouteTypes {
     | '/app/onboarding'
     | '/app/profile'
     | '/app/settings'
+    | '/app/settings/account'
+    | '/app/settings/discovery'
+    | '/app/settings/notifications'
+    | '/app/settings/safety'
     | '/app/u/$username'
   id:
     | '__root__'
@@ -155,6 +203,10 @@ export interface FileRouteTypes {
     | '/_authenticated/app/onboarding'
     | '/_authenticated/app/profile'
     | '/_authenticated/app/settings'
+    | '/_authenticated/app/settings/account'
+    | '/_authenticated/app/settings/discovery'
+    | '/_authenticated/app/settings/notifications'
+    | '/_authenticated/app/settings/safety'
     | '/_authenticated/app/u/$username'
   fileRoutesById: FileRoutesById
 }
@@ -243,8 +295,58 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppUUsernameRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
+    '/_authenticated/app/settings/safety': {
+      id: '/_authenticated/app/settings/safety'
+      path: '/safety'
+      fullPath: '/app/settings/safety'
+      preLoaderRoute: typeof AuthenticatedAppSettingsSafetyRouteImport
+      parentRoute: typeof AuthenticatedAppSettingsRoute
+    }
+    '/_authenticated/app/settings/notifications': {
+      id: '/_authenticated/app/settings/notifications'
+      path: '/notifications'
+      fullPath: '/app/settings/notifications'
+      preLoaderRoute: typeof AuthenticatedAppSettingsNotificationsRouteImport
+      parentRoute: typeof AuthenticatedAppSettingsRoute
+    }
+    '/_authenticated/app/settings/discovery': {
+      id: '/_authenticated/app/settings/discovery'
+      path: '/discovery'
+      fullPath: '/app/settings/discovery'
+      preLoaderRoute: typeof AuthenticatedAppSettingsDiscoveryRouteImport
+      parentRoute: typeof AuthenticatedAppSettingsRoute
+    }
+    '/_authenticated/app/settings/account': {
+      id: '/_authenticated/app/settings/account'
+      path: '/account'
+      fullPath: '/app/settings/account'
+      preLoaderRoute: typeof AuthenticatedAppSettingsAccountRouteImport
+      parentRoute: typeof AuthenticatedAppSettingsRoute
+    }
   }
 }
+
+interface AuthenticatedAppSettingsRouteChildren {
+  AuthenticatedAppSettingsAccountRoute: typeof AuthenticatedAppSettingsAccountRoute
+  AuthenticatedAppSettingsDiscoveryRoute: typeof AuthenticatedAppSettingsDiscoveryRoute
+  AuthenticatedAppSettingsNotificationsRoute: typeof AuthenticatedAppSettingsNotificationsRoute
+  AuthenticatedAppSettingsSafetyRoute: typeof AuthenticatedAppSettingsSafetyRoute
+}
+
+const AuthenticatedAppSettingsRouteChildren: AuthenticatedAppSettingsRouteChildren =
+  {
+    AuthenticatedAppSettingsAccountRoute: AuthenticatedAppSettingsAccountRoute,
+    AuthenticatedAppSettingsDiscoveryRoute:
+      AuthenticatedAppSettingsDiscoveryRoute,
+    AuthenticatedAppSettingsNotificationsRoute:
+      AuthenticatedAppSettingsNotificationsRoute,
+    AuthenticatedAppSettingsSafetyRoute: AuthenticatedAppSettingsSafetyRoute,
+  }
+
+const AuthenticatedAppSettingsRouteWithChildren =
+  AuthenticatedAppSettingsRoute._addFileChildren(
+    AuthenticatedAppSettingsRouteChildren,
+  )
 
 interface AuthenticatedAppRouteChildren {
   AuthenticatedAppDanceRoute: typeof AuthenticatedAppDanceRoute
@@ -252,7 +354,7 @@ interface AuthenticatedAppRouteChildren {
   AuthenticatedAppNotificationsRoute: typeof AuthenticatedAppNotificationsRoute
   AuthenticatedAppOnboardingRoute: typeof AuthenticatedAppOnboardingRoute
   AuthenticatedAppProfileRoute: typeof AuthenticatedAppProfileRoute
-  AuthenticatedAppSettingsRoute: typeof AuthenticatedAppSettingsRoute
+  AuthenticatedAppSettingsRoute: typeof AuthenticatedAppSettingsRouteWithChildren
   AuthenticatedAppUUsernameRoute: typeof AuthenticatedAppUUsernameRoute
 }
 
@@ -262,7 +364,7 @@ const AuthenticatedAppRouteChildren: AuthenticatedAppRouteChildren = {
   AuthenticatedAppNotificationsRoute: AuthenticatedAppNotificationsRoute,
   AuthenticatedAppOnboardingRoute: AuthenticatedAppOnboardingRoute,
   AuthenticatedAppProfileRoute: AuthenticatedAppProfileRoute,
-  AuthenticatedAppSettingsRoute: AuthenticatedAppSettingsRoute,
+  AuthenticatedAppSettingsRoute: AuthenticatedAppSettingsRouteWithChildren,
   AuthenticatedAppUUsernameRoute: AuthenticatedAppUUsernameRoute,
 }
 
