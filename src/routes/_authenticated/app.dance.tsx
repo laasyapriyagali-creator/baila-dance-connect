@@ -1,13 +1,22 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Bell, SlidersHorizontal, Sparkles, X, RotateCcw } from "lucide-react";
+import { Bell, SlidersHorizontal, Sparkles, X, RotateCcw, Users, Filter as FilterIcon } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@/lib/auth";
 import { DanceCard, type FeedItem } from "@/components/baila/DanceCard";
 import { DANCE_STYLES, type Profile, type DanceVideo } from "@/lib/baila-types";
 import { prewarm } from "@/lib/storage";
+import {
+  fetchBlockedIds,
+  fetchSettings,
+  fetchSkippedIds,
+  blockUser,
+  recordSkip,
+  resetSkips,
+  saveSettings,
+} from "@/lib/baila-data";
 import { Button, Chip, DanceLoader, EmptyState, IconButton, ModalSheet, Toggle } from "@/components/ui-baila";
 import {
   Sheet,
@@ -39,8 +48,8 @@ function DanceFeed() {
   const videoRefs = useRef<Map<number, HTMLVideoElement>>(new Map());
   const [activeIdx, setActiveIdx] = useState(0);
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [styleFilter, setStyleFilter] = useState<string[]>([]);
-  const [cityOnly, setCityOnly] = useState(false);
+  const [draftStyles, setDraftStyles] = useState<string[]>([]);
+  const [draftCityOnly, setDraftCityOnly] = useState(false);
   const [pendingAction, setPendingAction] = useState<null | { kind: "next" | "match"; item: FeedItem }>(null);
 
   const { data: me } = useQuery({
@@ -52,26 +61,44 @@ function DanceFeed() {
     },
   });
 
-  const { data: feed, isLoading } = useQuery({
-    queryKey: ["feed", user?.id, styleFilter, cityOnly, me?.city],
+  const { data: settings } = useQuery({
+    queryKey: ["settings", user?.id],
     enabled: !!user,
+    queryFn: () => fetchSettings(user!.id),
+  });
+
+  const styleFilter = settings?.discovery_styles ?? [];
+  const cityOnly = (settings?.max_distance_km ?? 50) === 0;
+
+  useEffect(() => {
+    if (filtersOpen) {
+      setDraftStyles(styleFilter);
+      setDraftCityOnly(cityOnly);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filtersOpen]);
+
+  const { data: feed, isLoading } = useQuery({
+    queryKey: ["feed", user?.id, styleFilter, cityOnly, settings?.age_min, settings?.age_max, me?.city],
+    enabled: !!user && !!settings,
     staleTime: 30_000,
     queryFn: async () => {
-      // Single relation pull: pending/declined sent by me OR accepted in either direction.
-      const [videosRes, relRes] = await Promise.all([
+      const [videosRes, relRes, blockedIds, skippedIds] = await Promise.all([
         supabase
           .from("dance_videos")
           .select("*")
           .eq("is_main", true)
           .neq("user_id", user!.id)
           .order("created_at", { ascending: false })
-          .limit(60),
+          .limit(120),
         supabase
           .from("connection_requests")
           .select("from_user,to_user,status")
           .or(`from_user.eq.${user!.id},to_user.eq.${user!.id}`),
+        fetchBlockedIds(user!.id),
+        fetchSkippedIds(user!.id),
       ]);
-      const excluded = new Set<string>();
+      const excluded = new Set<string>([...blockedIds]);
       (relRes.data ?? []).forEach((r) => {
         if (r.from_user === user!.id) excluded.add(r.to_user);
         if (r.status === "accepted") {
@@ -79,10 +106,16 @@ function DanceFeed() {
           excluded.add(r.to_user);
         }
       });
+      const skipped = new Set(skippedIds);
+
       const vids = (videosRes.data ?? []).filter((v) => !excluded.has(v.user_id)) as DanceVideo[];
-      if (vids.length === 0) return [] as FeedItem[];
+      if (vids.length === 0) return { items: [] as FeedItem[], baseCount: 0, filteredCount: 0 };
       const ids = Array.from(new Set(vids.map((v) => v.user_id)));
-      const { data: profs } = await supabase.from("profiles").select("*").in("id", ids);
+      const [{ data: profs }, { data: settingsRows }] = await Promise.all([
+        supabase.from("profiles").select("*").in("id", ids),
+        supabase.from("user_settings").select("user_id,discoverable").in("user_id", ids),
+      ]);
+      const discoverableMap = new Map((settingsRows ?? []).map((s) => [s.user_id, s.discoverable]));
       const map = new Map((profs ?? []).map((p) => [p.id, p as unknown as Profile]));
       const mineStyles = new Set(me?.dance_styles ?? []);
       const now = Date.now();
@@ -93,20 +126,32 @@ function DanceFeed() {
         s += Math.max(0, 5 - (now - new Date(it.mainVideo.created_at).getTime()) / 86_400_000);
         return s;
       };
-      const items: FeedItem[] = [];
+
+      const ageMin = settings?.age_min ?? 18;
+      const ageMax = settings?.age_max ?? 99;
+
+      // Base pool: eligible candidates before style/age/city filters (used for "no one nearby" state).
+      const basePool: FeedItem[] = [];
+      const filteredPool: FeedItem[] = [];
       for (const v of vids) {
         const p = map.get(v.user_id);
         if (!p) continue;
+        if (p.paused) continue;
+        if (discoverableMap.get(p.id) === false) continue;
+        const item: FeedItem = { profile: p, mainVideo: v };
+        basePool.push(item);
         if (styleFilter.length && !p.dance_styles.some((s) => styleFilter.includes(s))) continue;
+        if (p.age != null && (p.age < ageMin || p.age > ageMax)) continue;
         if (cityOnly && me?.city && p.city !== me.city) continue;
-        items.push({ profile: p, mainVideo: v });
+        filteredPool.push(item);
       }
-      const sorted = items.sort((a, b) => score(b) - score(a));
-      // Pre-warm first few signed URLs so the initial paint has video + poster ready.
+
+      const remaining = filteredPool.filter((it) => !skipped.has(it.profile.id));
+      const sorted = remaining.sort((a, b) => score(b) - score(a));
       const first = sorted.slice(0, 3);
       prewarm("dance-videos", first.map((f) => f.mainVideo.storage_path));
       prewarm("dance-videos", first.map((f) => f.mainVideo.poster_url));
-      return sorted;
+      return { items: sorted, baseCount: basePool.length, filteredCount: filteredPool.length };
     },
   });
 
@@ -127,7 +172,7 @@ function DanceFeed() {
     );
     root.querySelectorAll("[data-feed-item]").forEach((el) => io.observe(el));
     return () => io.disconnect();
-  }, [feed?.length]);
+  }, [feed?.items.length]);
 
   // Pause non-active videos; preload neighbors. Prewarm signed URLs for upcoming.
   useEffect(() => {
@@ -140,7 +185,7 @@ function DanceFeed() {
         v.pause();
       }
     });
-    const upcoming = (feed ?? []).slice(activeIdx, activeIdx + 4);
+    const upcoming = (feed?.items ?? []).slice(activeIdx, activeIdx + 4);
     if (upcoming.length) {
       prewarm("dance-videos", upcoming.map((f) => f.mainVideo.storage_path));
       prewarm("dance-videos", upcoming.map((f) => f.mainVideo.poster_url));
@@ -150,13 +195,8 @@ function DanceFeed() {
   const decide = async (kind: "next" | "match", item: FeedItem) => {
     if (!user) return;
     if (kind === "next") {
-      const { error } = await supabase
-        .from("connection_requests")
-        .upsert(
-          { from_user: user.id, to_user: item.profile.id, status: "declined" },
-          { onConflict: "from_user,to_user" },
-        );
-      if (error) toast.error(error.message);
+      void recordSkip(user.id, item.profile.id);
+      qc.invalidateQueries({ queryKey: ["feed"] });
     } else {
       const { error } = await supabase
         .from("connection_requests")
@@ -166,14 +206,102 @@ function DanceFeed() {
         );
       if (error) toast.error(error.message);
       else toast.success(`Asked ${item.profile.display_name ?? "them"} to dance`);
+      qc.invalidateQueries({ queryKey: ["feed"] });
+      qc.invalidateQueries({ queryKey: ["unseen-counts"] });
     }
-    qc.invalidateQueries({ queryKey: ["feed"] });
-    qc.invalidateQueries({ queryKey: ["unseen-counts"] });
     setPendingAction(null);
   };
 
-  const items = useMemo(() => feed ?? [], [feed]);
+  const handleBlock = async (profileId: string) => {
+    if (!user) return;
+    try {
+      await blockUser(user.id, profileId);
+      toast.success("Blocked — you won't see them again");
+      qc.invalidateQueries({ queryKey: ["feed"] });
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Couldn't block");
+    }
+  };
+
+  const resetFilters = () => {
+    if (!user) return;
+    saveSettings(user.id, { discovery_styles: [], age_min: 18, age_max: 60, max_distance_km: 50 }).then(() => {
+      qc.invalidateQueries({ queryKey: ["settings", user.id] });
+      qc.invalidateQueries({ queryKey: ["feed"] });
+    });
+  };
+
+  const handleResetFeed = async () => {
+    if (!user) return;
+    try {
+      await resetSkips(user.id);
+      qc.invalidateQueries({ queryKey: ["feed"] });
+      toast.success("Feed refreshed");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Couldn't reset feed");
+    }
+  };
+
+  const applyFilters = async () => {
+    if (!user) return;
+    await saveSettings(user.id, {
+      discovery_styles: draftStyles,
+      max_distance_km: draftCityOnly ? 0 : 50,
+    });
+    qc.invalidateQueries({ queryKey: ["feed"] });
+    qc.invalidateQueries({ queryKey: ["settings", user.id] });
+    setFiltersOpen(false);
+  };
+
+  const items = useMemo(() => feed?.items ?? [], [feed]);
   const activeFilters = styleFilter.length + (cityOnly ? 1 : 0);
+
+  const emptyState = (() => {
+    if (!feed) return null;
+    if (feed.baseCount === 0) {
+      return (
+        <EmptyState
+          tone="dark"
+          icon={<Users className="h-6 w-6" />}
+          title="No one nearby yet"
+          body="Baila is just getting started here — check back soon, or invite friends to join you on the floor."
+          action={
+            <Button variant="primary" onClick={() => navigate({ to: "/app/profile" })}>
+              Upload your dance
+            </Button>
+          }
+        />
+      );
+    }
+    if (feed.filteredCount === 0) {
+      return (
+        <EmptyState
+          tone="dark"
+          icon={<FilterIcon className="h-6 w-6" />}
+          title="No dancers match your filters"
+          body="Try widening your style, age range, or turning off city-only to see more people."
+          action={
+            <Button variant="primary" onClick={resetFilters}>
+              <RotateCcw className="h-4 w-4" /> Reset filters
+            </Button>
+          }
+        />
+      );
+    }
+    return (
+      <EmptyState
+        tone="dark"
+        icon={<Sparkles className="h-6 w-6" />}
+        title="You've seen everyone for now"
+        body="You've made it through today's dancers. Reset your feed to see them again."
+        action={
+          <Button variant="primary" onClick={handleResetFeed}>
+            <RotateCcw className="h-4 w-4" /> Reset feed
+          </Button>
+        }
+      />
+    );
+  })();
 
   return (
     <div className="relative h-[100dvh] bg-baila-ink">
@@ -207,19 +335,7 @@ function DanceFeed() {
           </div>
         )}
         {!isLoading && items.length === 0 && (
-          <div className="flex h-full items-center justify-center px-6">
-            <EmptyState
-              tone="dark"
-              icon={<Sparkles className="h-6 w-6" />}
-              title="No new dancers right now"
-              body="Come back soon — or upload a video so others discover you first."
-              action={
-                <Button variant="primary" onClick={() => navigate({ to: "/app/profile" })}>
-                  Upload your dance
-                </Button>
-              }
-            />
-          </div>
+          <div className="flex h-full items-center justify-center px-6">{emptyState}</div>
         )}
 
         {items.map((item, idx) => (
@@ -238,6 +354,7 @@ function DanceFeed() {
               active={idx === activeIdx}
               preload={Math.abs(idx - activeIdx) <= 1}
               onDoubleTap={() => setPendingAction({ kind: "match", item })}
+              onBlock={handleBlock}
             />
 
             <div className="pointer-events-none absolute inset-x-0 bottom-28 z-20 flex items-center justify-center gap-3 px-5">
@@ -317,9 +434,9 @@ function DanceFeed() {
                 {DANCE_STYLES.map((s) => (
                   <Chip
                     key={s}
-                    active={styleFilter.includes(s)}
+                    active={draftStyles.includes(s)}
                     onClick={() =>
-                      setStyleFilter((prev) =>
+                      setDraftStyles((prev) =>
                         prev.includes(s) ? prev.filter((x) => x !== s) : [...prev, s],
                       )
                     }
@@ -334,19 +451,24 @@ function DanceFeed() {
                 <span className="font-semibold text-baila-ink">My city only</span>
                 {me?.city && <span className="ml-2 text-baila-ink/50">({me.city})</span>}
               </span>
-              <Toggle checked={cityOnly} onCheckedChange={setCityOnly} label="My city only" />
+              <Toggle checked={draftCityOnly} onCheckedChange={setDraftCityOnly} label="My city only" />
             </div>
-            <Button
-              variant="ghost"
-              block
-              className="h-12"
-              onClick={() => {
-                setStyleFilter([]);
-                setCityOnly(false);
-              }}
-            >
-              <RotateCcw className="h-4 w-4" /> Reset filters
-            </Button>
+            <div className="flex gap-2.5">
+              <Button
+                variant="ghost"
+                block
+                className="h-12"
+                onClick={() => {
+                  setDraftStyles([]);
+                  setDraftCityOnly(false);
+                }}
+              >
+                <RotateCcw className="h-4 w-4" /> Reset
+              </Button>
+              <Button variant="primary" block className="h-12" onClick={applyFilters}>
+                Apply
+              </Button>
+            </div>
           </div>
         </SheetContent>
       </Sheet>
