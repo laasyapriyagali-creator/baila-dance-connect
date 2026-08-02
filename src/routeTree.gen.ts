@@ -9,34 +9,34 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
-import { Route as AuthenticatedAppDanceRouteImport } from './routes/_authenticated/app.dance'
-import { Route as AuthenticatedAppDateRouteImport } from './routes/_authenticated/app.date'
-import { Route as AuthenticatedAppNotificationsRouteImport } from './routes/_authenticated/app.notifications'
-import { Route as AuthenticatedAppOnboardingRouteImport } from './routes/_authenticated/app.onboarding'
-import { Route as AuthenticatedAppProfileRouteImport } from './routes/_authenticated/app.profile'
 import { Route as AuthenticatedAppSettingsRouteImport } from './routes/_authenticated/app.settings'
-import { Route as AuthenticatedAppSettingsAccountRouteImport } from './routes/_authenticated/app.settings.account'
-import { Route as AuthenticatedAppSettingsDiscoveryRouteImport } from './routes/_authenticated/app.settings.discovery'
-import { Route as AuthenticatedAppSettingsNotificationsRouteImport } from './routes/_authenticated/app.settings.notifications'
-import { Route as AuthenticatedAppSettingsSafetyRouteImport } from './routes/_authenticated/app.settings.safety'
+import { Route as AuthenticatedAppProfileRouteImport } from './routes/_authenticated/app.profile'
+import { Route as AuthenticatedAppOnboardingRouteImport } from './routes/_authenticated/app.onboarding'
+import { Route as AuthenticatedAppNotificationsRouteImport } from './routes/_authenticated/app.notifications'
+import { Route as AuthenticatedAppDateRouteImport } from './routes/_authenticated/app.date'
+import { Route as AuthenticatedAppDanceRouteImport } from './routes/_authenticated/app.dance'
 import { Route as AuthenticatedAppUUsernameRouteImport } from './routes/_authenticated/app.u.$username'
+import { Route as AuthenticatedAppSettingsSafetyRouteImport } from './routes/_authenticated/app.settings.safety'
+import { Route as AuthenticatedAppSettingsNotificationsRouteImport } from './routes/_authenticated/app.settings.notifications'
+import { Route as AuthenticatedAppSettingsDiscoveryRouteImport } from './routes/_authenticated/app.settings.discovery'
+import { Route as AuthenticatedAppSettingsAccountRouteImport } from './routes/_authenticated/app.settings.account'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthRoute = AuthRouteImport.update({
-  id: '/auth',
-  path: '/auth',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAppRoute = AuthenticatedAppRouteImport.update({
@@ -44,26 +44,10 @@ const AuthenticatedAppRoute = AuthenticatedAppRouteImport.update({
   path: '/app',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedAppDanceRoute = AuthenticatedAppDanceRouteImport.update({
-  id: '/dance',
-  path: '/dance',
-  getParentRoute: () => AuthenticatedAppRoute,
-} as any)
-const AuthenticatedAppDateRoute = AuthenticatedAppDateRouteImport.update({
-  id: '/date',
-  path: '/date',
-  getParentRoute: () => AuthenticatedAppRoute,
-} as any)
-const AuthenticatedAppNotificationsRoute =
-  AuthenticatedAppNotificationsRouteImport.update({
-    id: '/notifications',
-    path: '/notifications',
-    getParentRoute: () => AuthenticatedAppRoute,
-  } as any)
-const AuthenticatedAppOnboardingRoute =
-  AuthenticatedAppOnboardingRouteImport.update({
-    id: '/onboarding',
-    path: '/onboarding',
+const AuthenticatedAppSettingsRoute =
+  AuthenticatedAppSettingsRouteImport.update({
+    id: '/settings',
+    path: '/settings',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
 const AuthenticatedAppProfileRoute = AuthenticatedAppProfileRouteImport.update({
@@ -71,22 +55,38 @@ const AuthenticatedAppProfileRoute = AuthenticatedAppProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => AuthenticatedAppRoute,
 } as any)
-const AuthenticatedAppSettingsRoute =
-  AuthenticatedAppSettingsRouteImport.update({
-    id: '/settings',
-    path: '/settings',
+const AuthenticatedAppOnboardingRoute =
+  AuthenticatedAppOnboardingRouteImport.update({
+    id: '/onboarding',
+    path: '/onboarding',
     getParentRoute: () => AuthenticatedAppRoute,
   } as any)
-const AuthenticatedAppSettingsAccountRoute =
-  AuthenticatedAppSettingsAccountRouteImport.update({
-    id: '/account',
-    path: '/account',
-    getParentRoute: () => AuthenticatedAppSettingsRoute,
+const AuthenticatedAppNotificationsRoute =
+  AuthenticatedAppNotificationsRouteImport.update({
+    id: '/notifications',
+    path: '/notifications',
+    getParentRoute: () => AuthenticatedAppRoute,
   } as any)
-const AuthenticatedAppSettingsDiscoveryRoute =
-  AuthenticatedAppSettingsDiscoveryRouteImport.update({
-    id: '/discovery',
-    path: '/discovery',
+const AuthenticatedAppDateRoute = AuthenticatedAppDateRouteImport.update({
+  id: '/date',
+  path: '/date',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
+const AuthenticatedAppDanceRoute = AuthenticatedAppDanceRouteImport.update({
+  id: '/dance',
+  path: '/dance',
+  getParentRoute: () => AuthenticatedAppRoute,
+} as any)
+const AuthenticatedAppUUsernameRoute =
+  AuthenticatedAppUUsernameRouteImport.update({
+    id: '/u/$username',
+    path: '/u/$username',
+    getParentRoute: () => AuthenticatedAppRoute,
+  } as any)
+const AuthenticatedAppSettingsSafetyRoute =
+  AuthenticatedAppSettingsSafetyRouteImport.update({
+    id: '/safety',
+    path: '/safety',
     getParentRoute: () => AuthenticatedAppSettingsRoute,
   } as any)
 const AuthenticatedAppSettingsNotificationsRoute =
@@ -95,17 +95,17 @@ const AuthenticatedAppSettingsNotificationsRoute =
     path: '/notifications',
     getParentRoute: () => AuthenticatedAppSettingsRoute,
   } as any)
-const AuthenticatedAppSettingsSafetyRoute =
-  AuthenticatedAppSettingsSafetyRouteImport.update({
-    id: '/safety',
-    path: '/safety',
+const AuthenticatedAppSettingsDiscoveryRoute =
+  AuthenticatedAppSettingsDiscoveryRouteImport.update({
+    id: '/discovery',
+    path: '/discovery',
     getParentRoute: () => AuthenticatedAppSettingsRoute,
   } as any)
-const AuthenticatedAppUUsernameRoute =
-  AuthenticatedAppUUsernameRouteImport.update({
-    id: '/u/$username',
-    path: '/u/$username',
-    getParentRoute: () => AuthenticatedAppRoute,
+const AuthenticatedAppSettingsAccountRoute =
+  AuthenticatedAppSettingsAccountRouteImport.update({
+    id: '/account',
+    path: '/account',
+    getParentRoute: () => AuthenticatedAppSettingsRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -218,11 +218,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated': {
@@ -232,11 +232,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/auth': {
-      id: '/auth'
-      path: '/auth'
-      fullPath: '/auth'
-      preLoaderRoute: typeof AuthRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/app': {
@@ -246,32 +246,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/app/dance': {
-      id: '/_authenticated/app/dance'
-      path: '/dance'
-      fullPath: '/app/dance'
-      preLoaderRoute: typeof AuthenticatedAppDanceRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
-    '/_authenticated/app/date': {
-      id: '/_authenticated/app/date'
-      path: '/date'
-      fullPath: '/app/date'
-      preLoaderRoute: typeof AuthenticatedAppDateRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
-    '/_authenticated/app/notifications': {
-      id: '/_authenticated/app/notifications'
-      path: '/notifications'
-      fullPath: '/app/notifications'
-      preLoaderRoute: typeof AuthenticatedAppNotificationsRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
-    }
-    '/_authenticated/app/onboarding': {
-      id: '/_authenticated/app/onboarding'
-      path: '/onboarding'
-      fullPath: '/app/onboarding'
-      preLoaderRoute: typeof AuthenticatedAppOnboardingRouteImport
+    '/_authenticated/app/settings': {
+      id: '/_authenticated/app/settings'
+      path: '/settings'
+      fullPath: '/app/settings'
+      preLoaderRoute: typeof AuthenticatedAppSettingsRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
     '/_authenticated/app/profile': {
@@ -281,25 +260,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppProfileRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
-    '/_authenticated/app/settings': {
-      id: '/_authenticated/app/settings'
-      path: '/settings'
-      fullPath: '/app/settings'
-      preLoaderRoute: typeof AuthenticatedAppSettingsRouteImport
+    '/_authenticated/app/onboarding': {
+      id: '/_authenticated/app/onboarding'
+      path: '/onboarding'
+      fullPath: '/app/onboarding'
+      preLoaderRoute: typeof AuthenticatedAppOnboardingRouteImport
       parentRoute: typeof AuthenticatedAppRoute
     }
-    '/_authenticated/app/settings/account': {
-      id: '/_authenticated/app/settings/account'
-      path: '/account'
-      fullPath: '/app/settings/account'
-      preLoaderRoute: typeof AuthenticatedAppSettingsAccountRouteImport
-      parentRoute: typeof AuthenticatedAppSettingsRoute
+    '/_authenticated/app/notifications': {
+      id: '/_authenticated/app/notifications'
+      path: '/notifications'
+      fullPath: '/app/notifications'
+      preLoaderRoute: typeof AuthenticatedAppNotificationsRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
     }
-    '/_authenticated/app/settings/discovery': {
-      id: '/_authenticated/app/settings/discovery'
-      path: '/discovery'
-      fullPath: '/app/settings/discovery'
-      preLoaderRoute: typeof AuthenticatedAppSettingsDiscoveryRouteImport
+    '/_authenticated/app/date': {
+      id: '/_authenticated/app/date'
+      path: '/date'
+      fullPath: '/app/date'
+      preLoaderRoute: typeof AuthenticatedAppDateRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/dance': {
+      id: '/_authenticated/app/dance'
+      path: '/dance'
+      fullPath: '/app/dance'
+      preLoaderRoute: typeof AuthenticatedAppDanceRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/u/$username': {
+      id: '/_authenticated/app/u/$username'
+      path: '/u/$username'
+      fullPath: '/app/u/$username'
+      preLoaderRoute: typeof AuthenticatedAppUUsernameRouteImport
+      parentRoute: typeof AuthenticatedAppRoute
+    }
+    '/_authenticated/app/settings/safety': {
+      id: '/_authenticated/app/settings/safety'
+      path: '/safety'
+      fullPath: '/app/settings/safety'
+      preLoaderRoute: typeof AuthenticatedAppSettingsSafetyRouteImport
       parentRoute: typeof AuthenticatedAppSettingsRoute
     }
     '/_authenticated/app/settings/notifications': {
@@ -309,19 +309,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppSettingsNotificationsRouteImport
       parentRoute: typeof AuthenticatedAppSettingsRoute
     }
-    '/_authenticated/app/settings/safety': {
-      id: '/_authenticated/app/settings/safety'
-      path: '/safety'
-      fullPath: '/app/settings/safety'
-      preLoaderRoute: typeof AuthenticatedAppSettingsSafetyRouteImport
+    '/_authenticated/app/settings/discovery': {
+      id: '/_authenticated/app/settings/discovery'
+      path: '/discovery'
+      fullPath: '/app/settings/discovery'
+      preLoaderRoute: typeof AuthenticatedAppSettingsDiscoveryRouteImport
       parentRoute: typeof AuthenticatedAppSettingsRoute
     }
-    '/_authenticated/app/u/$username': {
-      id: '/_authenticated/app/u/$username'
-      path: '/u/$username'
-      fullPath: '/app/u/$username'
-      preLoaderRoute: typeof AuthenticatedAppUUsernameRouteImport
-      parentRoute: typeof AuthenticatedAppRoute
+    '/_authenticated/app/settings/account': {
+      id: '/_authenticated/app/settings/account'
+      path: '/account'
+      fullPath: '/app/settings/account'
+      preLoaderRoute: typeof AuthenticatedAppSettingsAccountRouteImport
+      parentRoute: typeof AuthenticatedAppSettingsRoute
     }
   }
 }
