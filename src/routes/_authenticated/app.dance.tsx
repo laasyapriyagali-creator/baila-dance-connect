@@ -304,14 +304,14 @@ function DanceFeed() {
   })();
 
   return (
-    <div className="relative h-[100dvh] bg-baila-ink">
+    <div className="relative h-[100dvh] bg-background">
       <header
-        className="absolute inset-x-0 top-0 z-30 flex items-center justify-between px-4"
+        className="absolute inset-x-0 top-0 z-30 flex items-center justify-between border-b border-baila-ink/[0.06] bg-background/80 px-4 pb-3 backdrop-blur-xl"
         style={{ paddingTop: "max(env(safe-area-inset-top), 0.85rem)" }}
       >
-        <h1 className="font-display text-2xl font-semibold tracking-[-0.03em] text-white drop-shadow-md">Baila</h1>
+        <h1 className="font-display text-2xl font-semibold tracking-[-0.03em] text-baila-ink">Baila</h1>
         <div className="flex gap-2">
-          <IconButton variant="glass" aria-label="Filters" onClick={() => setFiltersOpen(true)} className="relative">
+          <IconButton variant="secondary" aria-label="Filters" onClick={() => setFiltersOpen(true)} className="relative">
             <SlidersHorizontal className="h-4 w-4" />
             {activeFilters > 0 && (
               <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-baila-yellow px-1 text-[10px] font-bold text-baila-ink">
@@ -319,11 +319,12 @@ function DanceFeed() {
               </span>
             )}
           </IconButton>
-          <IconButton variant="glass" aria-label="Dance dates" onClick={() => navigate({ to: "/app/date" })}>
+          <IconButton variant="secondary" aria-label="Dance dates" onClick={() => navigate({ to: "/app/date" })}>
             <Bell className="h-4 w-4" />
           </IconButton>
         </div>
       </header>
+
 
       <div
         ref={containerRef}
