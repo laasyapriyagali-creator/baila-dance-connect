@@ -344,7 +344,7 @@ function DanceFeed() {
             key={item.mainVideo.id}
             data-feed-item
             data-idx={idx}
-            className="relative h-[100dvh] snap-start px-3 pb-32 pt-2"
+            className="relative h-[100dvh] snap-start px-3 pb-32 pt-[4.75rem]"
           >
             <DanceCard
               ref={(node) => {
