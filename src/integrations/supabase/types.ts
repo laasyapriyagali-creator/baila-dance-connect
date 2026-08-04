@@ -471,6 +471,8 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_blocked_pair: { Args: { _a: string; _b: string }; Returns: boolean }
+      videos_visible: { Args: { _owner: string }; Returns: boolean }
     }
     Enums: {
       app_role: "dancer" | "instructor" | "organizer"
