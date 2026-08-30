@@ -298,6 +298,8 @@ export type Database = {
           favorite_style: string | null
           headline: string | null
           id: string
+          is_demo: boolean
+          is_guest: boolean
           languages: string[]
           onboarded: boolean
           paused: boolean
@@ -321,6 +323,8 @@ export type Database = {
           favorite_style?: string | null
           headline?: string | null
           id: string
+          is_demo?: boolean
+          is_guest?: boolean
           languages?: string[]
           onboarded?: boolean
           paused?: boolean
@@ -344,6 +348,8 @@ export type Database = {
           favorite_style?: string | null
           headline?: string | null
           id?: string
+          is_demo?: boolean
+          is_guest?: boolean
           languages?: string[]
           onboarded?: boolean
           paused?: boolean

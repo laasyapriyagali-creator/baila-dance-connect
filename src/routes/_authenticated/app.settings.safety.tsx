@@ -50,7 +50,7 @@ function SafetySettingsPage() {
       const ids = (blocks ?? []).map((b) => b.blocked_id);
       if (ids.length === 0) return [] as Profile[];
       const { data: profiles } = await supabase.from("profiles").select("*").in("id", ids);
-      return (profiles ?? []) as Profile[];
+      return (profiles ?? []) as unknown as Profile[];
     },
   });
 
