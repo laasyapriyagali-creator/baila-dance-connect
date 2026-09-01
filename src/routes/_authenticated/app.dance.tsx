@@ -137,6 +137,7 @@ function DanceFeed() {
         const p = map.get(v.user_id);
         if (!p) continue;
         if (p.paused) continue;
+        if (p.is_guest) continue;
         if (discoverableMap.get(p.id) === false) continue;
         const item: FeedItem = { profile: p, mainVideo: v };
         basePool.push(item);
@@ -205,7 +206,7 @@ function DanceFeed() {
           { onConflict: "from_user,to_user" },
         );
       if (error) toast.error(error.message);
-      else toast.success(`Asked ${item.profile.display_name ?? "them"} to dance`);
+      else toast.success("dance request sent 💃");
       qc.invalidateQueries({ queryKey: ["feed"] });
       qc.invalidateQueries({ queryKey: ["unseen-counts"] });
     }
@@ -370,7 +371,7 @@ function DanceFeed() {
                 onClick={() => setPendingAction({ kind: "match", item })}
                 className="press bg-gradient-baila pointer-events-auto flex h-14 flex-1 items-center justify-center gap-2 rounded-full text-[15px] font-bold tracking-[-0.01em] text-baila-ink shadow-glow"
               >
-                <Sparkles className="h-4 w-4" /> Dance with me
+                <Sparkles className="h-4 w-4" /> Dance with {item.profile.display_name?.split(" ")[0] ?? "them"}
               </button>
             </div>
           </section>
@@ -395,8 +396,8 @@ function DanceFeed() {
             </span>
             <h3 className="font-display text-2xl font-semibold tracking-[-0.02em] text-baila-ink">
               {pendingAction.kind === "next"
-                ? `Pass on ${pendingAction.item.profile.display_name ?? "this dancer"}?`
-                : `Ask ${pendingAction.item.profile.display_name ?? "them"} to dance?`}
+                ? `Skip ${pendingAction.item.profile.display_name?.split(" ")[0] ?? "this dancer"}?`
+                : "Would you like to dance with this person?"}
             </h3>
             <p className="mt-2 text-sm leading-relaxed text-baila-ink/60">
               {pendingAction.kind === "next"
@@ -405,7 +406,7 @@ function DanceFeed() {
             </p>
             <div className="mt-6 flex gap-2.5">
               <Button variant="ghost" block className="h-12" onClick={() => setPendingAction(null)}>
-                Cancel
+                {pendingAction.kind === "next" ? "Cancel" : "Nah"}
               </Button>
               <Button
                 variant={pendingAction.kind === "next" ? "ink" : "primary"}
@@ -413,7 +414,7 @@ function DanceFeed() {
                 className="h-12"
                 onClick={() => decide(pendingAction.kind, pendingAction.item)}
               >
-                {pendingAction.kind === "next" ? "Pass" : "Ask to dance"}
+                {pendingAction.kind === "next" ? "Skip" : "Yes 💃"}
               </Button>
             </div>
           </>

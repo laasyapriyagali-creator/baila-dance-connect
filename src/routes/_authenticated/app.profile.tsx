@@ -22,14 +22,14 @@ import {
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useSession } from "@/lib/auth";
+import { useIsGuest, useSession } from "@/lib/auth";
 import { UploadVideoDialog } from "@/components/baila/UploadVideoDialog";
 import { EditProfileDialog } from "@/components/baila/EditProfileDialog";
 import { ManageVideosSheet } from "@/components/baila/ManageVideosSheet";
 import { SignedImage } from "@/components/baila/SignedMedia";
 import { VideoPlayerDialog } from "@/components/baila/VideoPlayerDialog";
 import { type DanceVideo, type Profile } from "@/lib/baila-types";
-import { Button, EmptyState, Pill, Skeleton, StatCard } from "@/components/ui-baila";
+import { Button, Card, EmptyState, Pill, Skeleton, StatCard } from "@/components/ui-baila";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -54,6 +54,7 @@ export const Route = createFileRoute("/_authenticated/app/profile")({
 
 function ProfilePage() {
   const { user } = useSession();
+  const isGuest = useIsGuest();
   const qc = useQueryClient();
   const [uploadOpen, setUploadOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
@@ -461,6 +462,23 @@ function ProfilePage() {
           </ul>
         )}
       </section>
+
+      {isGuest && (
+        <section className="mt-8 px-5">
+          <Card className="p-5 text-center">
+            <h3 className="font-display text-lg font-semibold tracking-[-0.02em] text-baila-ink">
+              ready to find your dance date?
+            </h3>
+            <p className="mt-1.5 text-sm leading-relaxed text-baila-ink/60">
+              You're exploring Baila as a guest. Create an account to keep your reel, your
+              connections and your dance dates.
+            </p>
+            <Link to="/auth" className="mt-4 inline-block">
+              <Button variant="primary">Create my account</Button>
+            </Link>
+          </Card>
+        </section>
+      )}
 
       {user && (
         <UploadVideoDialog userId={user.id} open={uploadOpen} onOpenChange={setUploadOpen} />

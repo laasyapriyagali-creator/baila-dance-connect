@@ -65,10 +65,27 @@ function AccountInfoPage() {
         </div>
       ) : (
         <div className="space-y-6">
+          {isGuest && (
+            <Card className="p-5">
+              <h2 className="font-display text-lg font-semibold tracking-[-0.02em] text-baila-ink">
+                ready to find your dance date?
+              </h2>
+              <p className="mt-1.5 text-sm leading-relaxed text-baila-ink/60">
+                You're exploring Baila as a guest. Create an account to keep everything you've
+                danced towards.
+              </p>
+              <Link to="/auth" className="mt-4 inline-block">
+                <Button variant="primary">Create my account</Button>
+              </Link>
+            </Card>
+          )}
+
           <Card className="divide-y divide-baila-ink/[0.06] overflow-hidden">
             <div className="px-4 py-4">
               <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-baila-ink/40">Email</p>
-              <p className="mt-1 text-[15px] font-semibold text-baila-ink">{user?.email}</p>
+              <p className="mt-1 text-[15px] font-semibold text-baila-ink">
+                {user?.email ?? "Guest session — no email yet"}
+              </p>
             </div>
             <div className="px-4 py-4">
               <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-baila-ink/40">Joined</p>
