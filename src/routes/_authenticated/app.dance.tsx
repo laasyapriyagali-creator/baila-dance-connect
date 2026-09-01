@@ -396,8 +396,8 @@ function DanceFeed() {
             </span>
             <h3 className="font-display text-2xl font-semibold tracking-[-0.02em] text-baila-ink">
               {pendingAction.kind === "next"
-                ? `Pass on ${pendingAction.item.profile.display_name ?? "this dancer"}?`
-                : `Ask ${pendingAction.item.profile.display_name ?? "them"} to dance?`}
+                ? `Skip ${pendingAction.item.profile.display_name?.split(" ")[0] ?? "this dancer"}?`
+                : "Would you like to dance with this person?"}
             </h3>
             <p className="mt-2 text-sm leading-relaxed text-baila-ink/60">
               {pendingAction.kind === "next"
@@ -406,7 +406,7 @@ function DanceFeed() {
             </p>
             <div className="mt-6 flex gap-2.5">
               <Button variant="ghost" block className="h-12" onClick={() => setPendingAction(null)}>
-                Cancel
+                {pendingAction.kind === "next" ? "Cancel" : "Nah"}
               </Button>
               <Button
                 variant={pendingAction.kind === "next" ? "ink" : "primary"}
@@ -414,7 +414,7 @@ function DanceFeed() {
                 className="h-12"
                 onClick={() => decide(pendingAction.kind, pendingAction.item)}
               >
-                {pendingAction.kind === "next" ? "Pass" : "Ask to dance"}
+                {pendingAction.kind === "next" ? "Skip" : "Yes 💃"}
               </Button>
             </div>
           </>
