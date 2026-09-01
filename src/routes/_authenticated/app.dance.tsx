@@ -371,7 +371,7 @@ function DanceFeed() {
                 onClick={() => setPendingAction({ kind: "match", item })}
                 className="press bg-gradient-baila pointer-events-auto flex h-14 flex-1 items-center justify-center gap-2 rounded-full text-[15px] font-bold tracking-[-0.01em] text-baila-ink shadow-glow"
               >
-                <Sparkles className="h-4 w-4" /> Dance with {pendingAction === null ? (item.profile.display_name?.split(" ")[0] ?? "them") : (item.profile.display_name?.split(" ")[0] ?? "them")}
+                <Sparkles className="h-4 w-4" /> Dance with {item.profile.display_name?.split(" ")[0] ?? "them"}
               </button>
             </div>
           </section>

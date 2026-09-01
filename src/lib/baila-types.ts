@@ -16,6 +16,8 @@ export type Profile = {
   languages: string[];
   favorite_style: string | null;
   paused: boolean;
+  is_guest?: boolean;
+  is_demo?: boolean;
   availability: string[];
   role: AppRole;
   avatar_url: string | null;
