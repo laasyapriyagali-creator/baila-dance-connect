@@ -22,14 +22,14 @@ import {
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useSession } from "@/lib/auth";
+import { useIsGuest, useSession } from "@/lib/auth";
 import { UploadVideoDialog } from "@/components/baila/UploadVideoDialog";
 import { EditProfileDialog } from "@/components/baila/EditProfileDialog";
 import { ManageVideosSheet } from "@/components/baila/ManageVideosSheet";
 import { SignedImage } from "@/components/baila/SignedMedia";
 import { VideoPlayerDialog } from "@/components/baila/VideoPlayerDialog";
 import { type DanceVideo, type Profile } from "@/lib/baila-types";
-import { Button, EmptyState, Pill, Skeleton, StatCard } from "@/components/ui-baila";
+import { Button, Card, EmptyState, Pill, Skeleton, StatCard } from "@/components/ui-baila";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -54,6 +54,7 @@ export const Route = createFileRoute("/_authenticated/app/profile")({
 
 function ProfilePage() {
   const { user } = useSession();
+  const isGuest = useIsGuest();
   const qc = useQueryClient();
   const [uploadOpen, setUploadOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
